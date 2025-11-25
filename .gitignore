@@ -37,3 +37,9 @@ logs/
 *.tmp
 *.swp
 *.bak
+src/main/resources/application-local.properties
+# Ignore local configuration
+application-local.properties
+
+# Ignore compiled files
+target/
