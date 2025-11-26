@@ -17,18 +17,27 @@ public class Task {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "titlu")
     private String titlu;
 
-    @Column(length = 2000)
+    @Column(name = "descriere")
     private String descriere;
 
-    private String status;     // TO_DO, IN_PROGRESS, DONE
-    private String prioritate; // LOW, MEDIUM, HIGH
+    @Column(name = "status")
+    private String status;
 
+    @Column(name = "prioritate")
+    private String prioritate;
+
+    @Column(name = "categorie")
+    private String categorie;
+
+    @Column(name = "data_creare")
     private LocalDate dataCreare;
+
+    @Column(name = "data_limita")
     private LocalDate dataLimita;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User userAsignat;
+    @Column(name = "id_creator")       // IMPORTANT!!!
+    private Long idCreator;
 }

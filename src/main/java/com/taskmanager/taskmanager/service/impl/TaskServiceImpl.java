@@ -22,8 +22,25 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public List<Task> filterTasks(String status, String prioritate) {
-        return taskRepository.filterTasks(status, prioritate);
+    public List<Task> filterTasks(String status, String prioritate, String categorie) {
+        return taskRepository.findAll((root, query, cb) -> {
+
+            var predicates = cb.conjunction();
+
+            if (status != null && !status.isEmpty()) {
+                predicates.getExpressions().add(cb.equal(root.get("status"), status));
+            }
+
+            if (prioritate != null && !prioritate.isEmpty()) {
+                predicates.getExpressions().add(cb.equal(root.get("prioritate"), prioritate));
+            }
+
+            if (categorie != null && !categorie.isEmpty()) {
+                predicates.getExpressions().add(cb.equal(root.get("categorie"), categorie));
+            }
+
+            return predicates;
+        });
     }
 
     @Override

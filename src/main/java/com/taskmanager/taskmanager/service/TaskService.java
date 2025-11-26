@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface TaskService {
     List<Task> findAll();
-    List<Task> filterTasks(String status, String prioritate);
+    List<Task> filterTasks(String status, String prioritate, String categorie);
     Task save(Task task);
     Task update(Task task);
     void delete(Long id);
