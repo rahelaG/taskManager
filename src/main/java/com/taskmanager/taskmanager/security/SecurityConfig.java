@@ -24,8 +24,6 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // ⭐ CORECTAT: Aceasta este metoda standard pentru a obține AuthenticationManager.
-    // Spring Security va folosi automat customUserDetailsService și passwordEncoder.
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
@@ -37,17 +35,27 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+                        // Pagini publice
                         .requestMatchers("/login", "/css/**", "/js/**").permitAll()
-                        .requestMatchers("/tasks/**").hasAnyRole("USER", "EDITOR", "ADMIN")
-                        .requestMatchers("/tasks/delete/**", "/tasks/update/**")
+
+                        // Zona userului normal
+                        .requestMatchers("/tasks/**")
+                        .hasAnyRole("USER", "EDITOR", "ADMIN")
+
+                        // Zona editorului (team leader)
+                        .requestMatchers("/editor/**")
                         .hasAnyRole("EDITOR", "ADMIN")
+
+                        // Zona adminului
                         .requestMatchers("/admin/**").hasRole("ADMIN")
+
+                        // Orice alt request
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/do-login")
-                        .defaultSuccessUrl("/tasks", true)
+                        .defaultSuccessUrl("/redirectByRole", true)
                         .failureUrl("/login?error=true")
                         .permitAll()
                 )

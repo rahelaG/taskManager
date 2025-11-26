@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Editor - Task Manager</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+</head>
+
+<body class="bg-light">
+
+<!-- Navbar -->
+<div th:replace="fragments/navbar :: navbar"></div>
+
+<div class="container mt-4">
+
+    <h2 class="mb-4">📋 Toate Task-urile (Editor)</h2>
+
+    <!-- Buton creare task -->
+    <a href="/editor/task/create" class="btn btn-primary mb-3">➕ Crează Task</a>
+
+    <!-- CARD FILTRARE -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">🔎 Filtrează task-urile</div>
+
+        <div class="card-body">
+            <form method="get" action="/editor/tasks">
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label>Status</label>
+                        <select name="status" class="form-select">
+                            <option value="">Toate</option>
+                            <option value="TODO">TODO</option>
+                            <option value="IN_PROGRESS">IN_PROGRESS</option>
+                            <option value="DONE">DONE</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label>Prioritate</label>
+                        <select name="prioritate" class="form-select">
+                            <option value="">Toate</option>
+                            <option value="LOW">LOW</option>
+                            <option value="MEDIUM">MEDIUM</option>
+                            <option value="HIGH">HIGH</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label>Categorie</label>
+                        <input name="categorie" type="text" class="form-control" placeholder="ex: Backend">
+                    </div>
+                </div>
+
+                <button class="btn btn-primary w-100">Filtrează</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- TABEL TASKURI -->
+    <div class="card">
+        <div class="card-header bg-dark text-white">📌 Lista Task-uri</div>
+
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle text-center">
+                <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Titlu</th>
+                    <th>Descriere</th>
+                    <th>Status</th>
+                    <th>Prioritate</th>
+                    <th>Categorie</th>
+                    <th>Creat</th>
+                    <th>Deadline</th>
+                    <th>Acțiuni</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="task : ${tasks}">
+                    <td th:text="${task.id}"></td>
+                    <td th:text="${task.titlu}"></td>
+                    <td th:text="${task.descriere}"></td>
+                    <td th:text="${task.status}"></td>
+                    <td th:text="${task.prioritate}"></td>
+                    <td th:text="${task.categorie}"></td>
+                    <td th:text="${task.dataCreare}"></td>
+                    <td th:text="${task.dataLimita}"></td>
+
+                    <td>
+                        <a th:href="@{'/editor/task/edit/' + ${task.id}}" class="btn btn-warning btn-sm">✏ Edit</a>
+                        <a th:href="@{'/editor/task/delete/' + ${task.id}}" class="btn btn-danger btn-sm"
+                           onclick="return confirm('Ștergi acest task?');">🗑 Delete</a>
+                    </td>
+                </tr>
+                </tbody>
+
+            </table>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

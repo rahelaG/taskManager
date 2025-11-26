@@ -5,6 +5,8 @@ import com.taskmanager.taskmanager.repository.UserRepository;
 import com.taskmanager.taskmanager.service.UserService;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -23,5 +25,20 @@ public class UserServiceImpl implements UserService {
     public Long getUserIdByUsername(String username) {
         User user = userRepository.findByUtilizator(username);
         return (user != null) ? user.getId() : null;
+    }
+
+    @Override
+    public List<User> findAllUsers() {
+        return userRepository.findAll();
+    }
+
+    @Override
+    public User saveUser(User user) {
+        return userRepository.save(user);
+    }
+
+    @Override
+    public void deleteUser(Long id) {
+        userRepository.deleteById(id);
     }
 }

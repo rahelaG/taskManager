@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Editare Task</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+</head>
+
+<body class="bg-light">
+
+<div th:replace="fragments/navbar :: navbar"></div>
+
+<div class="container mt-4">
+
+    <h2 class="mb-4">✏ Editare Task</h2>
+
+    <form action="/editor/task/update" method="post" class="card p-4">
+
+        <input type="hidden" name="id" th:value="${task.id}">
+
+        <div class="mb-3">
+            <label>Titlu</label>
+            <input type="text" class="form-control" name="titlu" th:value="${task.titlu}" required>
+        </div>
+
+        <div class="mb-3">
+            <label>Descriere</label>
+            <textarea class="form-control" name="descriere" rows="3" th:text="${task.descriere}"></textarea>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label>Status</label>
+                <select name="status" class="form-select">
+                    <option value="TODO">TODO</option>
+                    <option value="IN_PROGRESS">IN_PROGRESS</option>
+                    <option value="DONE">DONE</option>
+                </select>
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <label>Prioritate</label>
+                <select name="prioritate" class="form-select">
+                    <option value="LOW">LOW</option>
+                    <option value="MEDIUM">MEDIUM</option>
+                    <option value="HIGH">HIGH</option>
+                </select>
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <label>Categorie</label>
+                <input type="text" class="form-control" name="categorie" th:value="${task.categorie}">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label>Data creare</label>
+                <input type="date" class="form-control" name="dataCreare" th:value="${task.dataCreare}">
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label>Deadline</label>
+                <input type="date" class="form-control" name="dataLimita" th:value="${task.dataLimita}">
+            </div>
+        </div>
+
+        <!-- Dropdown users -->
+        <div class="mb-3">
+            <label>Asignat către</label>
+            <select name="userId" class="form-select">
+                <option th:each="u : ${users}"
+                        th:value="${u.id}"
+                        th:text="${u.utilizator}"
+                        th:selected="${u.id == task.idCreator}">
+                </option>
+            </select>
+        </div>
+
+        <button class="btn btn-success w-100">Salvează modificările</button>
+    </form>
+
+</div>
+
+</body>
+</html>
