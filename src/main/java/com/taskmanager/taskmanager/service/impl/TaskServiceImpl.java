@@ -1,8 +1,7 @@
-package com.taskmanager.taskmanager.service.impl;
+package com.taskmanager.taskmanager.service;
 
 import com.taskmanager.taskmanager.entity.Task;
 import com.taskmanager.taskmanager.repository.TaskRepository;
-import com.taskmanager.taskmanager.service.TaskService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -11,55 +10,22 @@ import java.util.List;
 public class TaskServiceImpl implements TaskService {
 
     private final TaskRepository taskRepository;
+    private final UserService userService;
 
-    public TaskServiceImpl(TaskRepository taskRepository) {
+    public TaskServiceImpl(TaskRepository taskRepository, UserService userService) {
         this.taskRepository = taskRepository;
+        this.userService = userService;
     }
 
     @Override
-    public List<Task> findAll() {
-        return taskRepository.findAll();
-    }
+    public List<Task> filterTasks(String status, String prioritate, String categorie, String username) {
 
-    @Override
-    public List<Task> filterTasks(String status, String prioritate, String categorie) {
-        return taskRepository.findAll((root, query, cb) -> {
+        if (status != null && status.isBlank()) status = null;
+        if (prioritate != null && prioritate.isBlank()) prioritate = null;
+        if (categorie != null && categorie.isBlank()) categorie = null;
 
-            var predicates = cb.conjunction();
+        Long userId = userService.getUserIdByUsername(username);
 
-            if (status != null && !status.isEmpty()) {
-                predicates.getExpressions().add(cb.equal(root.get("status"), status));
-            }
-
-            if (prioritate != null && !prioritate.isEmpty()) {
-                predicates.getExpressions().add(cb.equal(root.get("prioritate"), prioritate));
-            }
-
-            if (categorie != null && !categorie.isEmpty()) {
-                predicates.getExpressions().add(cb.equal(root.get("categorie"), categorie));
-            }
-
-            return predicates;
-        });
-    }
-
-    @Override
-    public Task save(Task task) {
-        return taskRepository.save(task);
-    }
-
-    @Override
-    public Task update(Task task) {
-        return taskRepository.save(task);
-    }
-
-    @Override
-    public void delete(Long id) {
-        taskRepository.deleteById(id);
-    }
-
-    @Override
-    public Task findById(Long id) {
-        return taskRepository.findById(id).orElse(null);
+        return taskRepository.filterTasks(status, prioritate, categorie, userId);
     }
 }
