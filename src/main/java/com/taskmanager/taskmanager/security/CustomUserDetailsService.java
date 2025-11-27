@@ -20,6 +20,9 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username)
             throws UsernameNotFoundException {
 
+        // Normalize username pentru siguranță
+        username = username.trim().toLowerCase();
+
         User user = userRepository.findByUtilizator(username);
 
         if (user == null) {

@@ -34,24 +34,28 @@ public class SecurityConfig {
 
         http
                 .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
-                        // Pagini publice
-                        .requestMatchers("/login", "/css/**", "/js/**").permitAll()
 
-                        // Zona userului normal
+                .authorizeHttpRequests(auth -> auth
+
+                        // Paginile publice
+                        .requestMatchers("/login", "/register", "/css/**", "/js/**").permitAll()
+
+                        // Zona userului obișnuit
                         .requestMatchers("/tasks/**")
                         .hasAnyRole("USER", "EDITOR", "ADMIN")
 
-                        // Zona editorului (team leader)
+                        // Zona editorului
                         .requestMatchers("/editor/**")
                         .hasAnyRole("EDITOR", "ADMIN")
 
                         // Zona adminului
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/admin/**")
+                        .hasRole("ADMIN")
 
-                        // Orice alt request
+                        // Tot restul necesită login
                         .anyRequest().authenticated()
                 )
+
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/do-login")
@@ -59,6 +63,7 @@ public class SecurityConfig {
                         .failureUrl("/login?error=true")
                         .permitAll()
                 )
+
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login?logout=true")
