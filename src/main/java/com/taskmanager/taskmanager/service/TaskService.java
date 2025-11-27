@@ -19,4 +19,5 @@ public interface TaskService {
     Task findById(Long id);
 
     List<Task> findAll();
+    int countByStatus(String status);
 }

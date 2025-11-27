@@ -67,4 +67,10 @@ public class TaskServiceImpl implements TaskService {
     public List<Task> findAll() {
         return taskRepository.findAll();
     }
+
+    @Override
+    public int countByStatus(String status) {
+        return taskRepository.countByStatus(status);
+    }
+
 }

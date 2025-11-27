@@ -10,9 +10,15 @@ public interface UserService {
 
     Long getUserIdByUsername(String username);
 
-    List<User> findAllUsers();   // folosit în EditorController pentru dropdown
+    List<User> findAllUsers();
 
     User saveUser(User user);
 
+    User updateUser(User user);
+
     void deleteUser(Long id);
+
+    User findById(Long id);
+
+    void changePassword(Long id, String newPassword);
 }

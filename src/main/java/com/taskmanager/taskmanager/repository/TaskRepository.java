@@ -34,4 +34,8 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
             @Param("prioritate") String prioritate,
             @Param("categorie") String categorie
     );
+
+    // ✔ ADMIN & Dashboard
+    @Query("SELECT COUNT(t) FROM Task t WHERE t.status = :status")
+    int countByStatus(@Param("status") String status);
 }
