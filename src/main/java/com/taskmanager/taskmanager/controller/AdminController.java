@@ -3,6 +3,7 @@ package com.taskmanager.taskmanager.controller;
 import com.taskmanager.taskmanager.entity.User;
 import com.taskmanager.taskmanager.service.TaskService;
 import com.taskmanager.taskmanager.service.UserService;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -12,23 +13,25 @@ import org.springframework.web.bind.annotation.*;
 public class AdminController {
 
     private final UserService userService;
-    private final TaskService taskService;   // <-- AICI L-AM ADAUGAT
+    private final TaskService taskService;
 
     public AdminController(UserService userService, TaskService taskService) {
         this.userService = userService;
-        this.taskService = taskService;      // <-- SI AICI
+        this.taskService = taskService;
     }
 
     // LISTARE USERI
     @GetMapping("/users")
-    public String listUsers(Model model) {
+    public String listUsers(Model model, Authentication authentication) {
+        model.addAttribute("username", authentication.getName());
         model.addAttribute("users", userService.findAllUsers());
         return "admin-users";
     }
 
     // FORMULAR CREARE USER
     @GetMapping("/user/create")
-    public String createUserForm(Model model) {
+    public String createUserForm(Model model, Authentication authentication) {
+        model.addAttribute("username", authentication.getName());
         model.addAttribute("user", new User());
         return "admin-user-create";
     }
@@ -42,7 +45,8 @@ public class AdminController {
 
     // FORMULAR EDITARE USER
     @GetMapping("/user/edit/{id}")
-    public String editUserForm(@PathVariable Long id, Model model) {
+    public String editUserForm(@PathVariable Long id, Model model, Authentication authentication) {
+        model.addAttribute("username", authentication.getName());
         model.addAttribute("user", userService.findById(id));
         return "admin-user-edit";
     }
@@ -54,7 +58,7 @@ public class AdminController {
         return "redirect:/admin/users";
     }
 
-    // SCHIMBARE PAROLĂ
+    // SCHIMBARE PAROLA
     @PostMapping("/user/reset-password")
     public String resetPassword(
             @RequestParam Long id,
@@ -73,10 +77,11 @@ public class AdminController {
 
     // DASHBOARD
     @GetMapping("/dashboard")
-    public String dashboard(Model model) {
+    public String dashboard(Model model, Authentication authentication) {
+
+        model.addAttribute("username", authentication.getName());
 
         model.addAttribute("totalUsers", userService.findAllUsers().size());
-
         model.addAttribute("totalTasks", taskService.findAll().size());
         model.addAttribute("tasksTodo", taskService.countByStatus("TODO"));
         model.addAttribute("tasksInProgress", taskService.countByStatus("IN_PROGRESS"));

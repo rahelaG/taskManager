@@ -27,12 +27,15 @@ public class TaskController {
             Authentication authentication,
             Model model
     ) {
+        // USERNAME
         String username = authentication.getName();
         model.addAttribute("username", username);
 
+        // LISTA TASK-URI FILTRATE DOAR PENTRU UTILIZATORUL LOGAT
         List<Task> tasks = taskService.filterTasks(status, prioritate, categorie, username);
         model.addAttribute("tasks", tasks);
 
+        // MESAJ FRUMOS PENTRU FILTRARE
         StringBuilder message = new StringBuilder("Toate task-urile tale");
 
         if (status != null && !status.isEmpty()) message.append(" cu status = ").append(status);

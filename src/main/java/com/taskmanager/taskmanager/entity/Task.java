@@ -38,6 +38,6 @@ public class Task {
     @Column(name = "data_limita")
     private LocalDate dataLimita;
 
-    @Column(name = "id_creator")       // IMPORTANT!!!
+    @Column(name = "id_creator")
     private Long idCreator;
 }

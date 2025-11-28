@@ -22,7 +22,7 @@ public class EditorController {
         this.userService = userService;
     }
 
-    // ⭐ 1. LISTĂ TASK-URI (toate task-urile)
+    // ⭐ 1. LISTA TASK-URI (toate task-urile)
     @GetMapping("/tasks")
     public String allTasks(
             @RequestParam(required = false) String status,
@@ -31,8 +31,7 @@ public class EditorController {
             Model model,
             Authentication authentication
     ) {
-        String username = authentication.getName();
-        model.addAttribute("username", username);
+        model.addAttribute("username", authentication.getName());
 
         List<Task> tasks = taskService.filterTasksForEditor(status, prioritate, categorie);
         model.addAttribute("tasks", tasks);
@@ -42,7 +41,8 @@ public class EditorController {
 
     // ⭐ 2. FORMULAR CREARE TASK
     @GetMapping("/task/create")
-    public String createTaskForm(Model model) {
+    public String createTaskForm(Model model, Authentication authentication) {
+        model.addAttribute("username", authentication.getName());
         model.addAttribute("task", new Task());
         model.addAttribute("users", userService.findAllUsers());
         return "editor-task-create";
@@ -58,7 +58,8 @@ public class EditorController {
 
     // ⭐ 4. FORMULAR EDITARE TASK
     @GetMapping("/task/edit/{id}")
-    public String editTaskForm(@PathVariable Long id, Model model) {
+    public String editTaskForm(@PathVariable Long id, Model model, Authentication authentication) {
+        model.addAttribute("username", authentication.getName());
         Task task = taskService.findById(id);
         model.addAttribute("task", task);
         model.addAttribute("users", userService.findAllUsers());

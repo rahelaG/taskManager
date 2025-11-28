@@ -11,6 +11,15 @@
 <!-- Navbar -->
 <div th:replace="fragments/navbar :: navbar"></div>
 
+<div class="container mt-3">
+    <h2 class="fw-bold text-dark">
+        👋 Bine ai venit,
+        <span class="text-primary" th:text="${username}"></span>!
+    </h2>
+    <hr>
+</div>
+
+
 <div class="container mt-4">
 
     <h2 class="mb-4">📋 Toate Task-urile (Editor)</h2>
