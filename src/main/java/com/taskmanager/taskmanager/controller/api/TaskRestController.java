@@ -3,10 +3,7 @@ package com.taskmanager.taskmanager.controller.api;
 import com.taskmanager.taskmanager.entity.Task;
 import com.taskmanager.taskmanager.service.TaskService;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -58,4 +55,32 @@ public class TaskRestController {
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
     }
+
+    @PostMapping("/editor/tasks")
+    public Task createTask(@RequestBody Task task) {
+        return taskService.save(task);
+    }
+
+    @PutMapping("/editor/tasks/{id}")
+    public Task updateTask(@PathVariable Long id, @RequestBody Task updatedTask) {
+        Task existing = taskService.findById(id);
+        if (existing == null) return null;
+
+        updatedTask.setId(id);
+        return taskService.update(updatedTask);
+    }
+    @DeleteMapping("/editor/tasks/{id}")
+    public void deleteTask(@PathVariable Long id) {
+        taskService.delete(id);
+    }
+    @PostMapping("/editor/tasks/{id}/assign")
+    public Task assignTask(@PathVariable Long id, @RequestParam Long userId) {
+        Task task = taskService.findById(id);
+        if (task == null) return null;
+
+        task.setIdCreator(userId);
+        return taskService.update(task);
+    }
+
+
 }

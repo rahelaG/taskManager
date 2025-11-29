@@ -8,6 +8,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import static org.springframework.security.config.Customizer.withDefaults;
+
 
 @Configuration
 @EnableWebSecurity
@@ -37,24 +39,42 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
 
-                        // Paginile publice
+                        // Public
                         .requestMatchers("/login", "/register", "/css/**", "/js/**").permitAll()
 
-                        // Zona userului obișnuit
+                        // HTML User
                         .requestMatchers("/tasks/**")
                         .hasAnyRole("USER", "EDITOR", "ADMIN")
 
-                        // Zona editorului
+                        // HTML Editor
                         .requestMatchers("/editor/**")
                         .hasAnyRole("EDITOR", "ADMIN")
 
-                        // Zona adminului
+                        // HTML Admin
                         .requestMatchers("/admin/**")
                         .hasRole("ADMIN")
 
-                        // Tot restul necesită login
+                        // API Editor
+                        .requestMatchers("/api/editor/**")
+                        .hasRole("EDITOR")
+
+                        // API Admin
+                        .requestMatchers("/api/admin/**")
+                        .hasRole("ADMIN")
+
+                        // API User (filtrare)
+                        .requestMatchers("/api/**")
+                        .authenticated()
+
                         .anyRequest().authenticated()
                 )
+
+                // 💥 BASIC AUTH trebuie PUS ÎNAINTE de formLogin
+                .httpBasic(withDefaults())
+
+                // ⭐ trebuie sa legam userDetailsService
+                .userDetailsService(customUserDetailsService)
+
 
                 .formLogin(form -> form
                         .loginPage("/login")
@@ -64,11 +84,13 @@ public class SecurityConfig {
                         .permitAll()
                 )
 
+
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login?logout=true")
                         .permitAll()
                 );
+        //http.httpBasic(withDefaults());
 
         return http.build();
     }
