@@ -8,8 +8,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import static org.springframework.security.config.Customizer.withDefaults;
 
+import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableWebSecurity
@@ -21,61 +21,70 @@ public class SecurityConfig {
         this.customUserDetailsService = customUserDetailsService;
     }
 
+    // PASSWORD ENCODER
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    // AUTH MANAGER
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
+    // SECURITY FILTER CHAIN
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
+                // ✔ CSRF OFF pentru API (Postman + React)
                 .csrf(csrf -> csrf.disable())
 
+                // ✔ Autorizații
                 .authorizeHttpRequests(auth -> auth
 
-                        // Public
-                        .requestMatchers("/login", "/register", "/css/**", "/js/**").permitAll()
+                        // ------- PUBLIC -------
+                        .requestMatchers("/login", "/do-login", "/register",
+                                "/css/**", "/js/**", "/images/**")
+                        .permitAll()
 
-                        // HTML User
+                        // ------- HTML USER -------
                         .requestMatchers("/tasks/**")
                         .hasAnyRole("USER", "EDITOR", "ADMIN")
 
-                        // HTML Editor
+                        // ------- HTML EDITOR -------
                         .requestMatchers("/editor/**")
                         .hasAnyRole("EDITOR", "ADMIN")
 
-                        // HTML Admin
+                        // ------- HTML ADMIN -------
                         .requestMatchers("/admin/**")
                         .hasRole("ADMIN")
 
-                        // API Editor
-                        .requestMatchers("/api/editor/**")
-                        .hasRole("EDITOR")
-
-                        // API Admin
+                        // ------- API ADMIN -------
                         .requestMatchers("/api/admin/**")
                         .hasRole("ADMIN")
 
-                        // API User (filtrare)
+                        // ------- API EDITOR -------
+                        .requestMatchers("/api/editor/**")
+                        .hasRole("EDITOR")
+
+                        // ------- API USER (fallback) -------
                         .requestMatchers("/api/**")
                         .authenticated()
 
-                        .anyRequest().authenticated()
+                        // TOT CE RAMANE -> AUTENTIFICAT
+                        .anyRequest()
+                        .authenticated()
                 )
 
-                // 💥 BASIC AUTH trebuie PUS ÎNAINTE de formLogin
+                // ⭐ IMPORTANT: httpBasic trebuie înainte de formLogin
                 .httpBasic(withDefaults())
 
-                // ⭐ trebuie sa legam userDetailsService
+                // ⭐ Legăm CustomUserDetailsService pentru autentificare corectă
                 .userDetailsService(customUserDetailsService)
 
-
+                // ✔ Login pentru HTML cu formLogin
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/do-login")
@@ -84,13 +93,12 @@ public class SecurityConfig {
                         .permitAll()
                 )
 
-
+                // ✔ Logout
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login?logout=true")
                         .permitAll()
                 );
-        //http.httpBasic(withDefaults());
 
         return http.build();
     }

@@ -1,0 +1,66 @@
+package com.taskmanager.taskmanager.controller.api;
+
+import com.taskmanager.taskmanager.entity.User;
+import com.taskmanager.taskmanager.service.UserService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/admin")
+@PreAuthorize("hasRole('ADMIN')")
+public class AdminRestController {
+
+    private final UserService userService;
+
+    public AdminRestController(UserService userService) {
+        this.userService = userService;
+    }
+
+    // GET ALL USERS
+    @GetMapping("/users")
+    public ResponseEntity<List<User>> getAllUsers() {
+        return ResponseEntity.ok(userService.findAllUsers());
+    }
+
+    // GET USER BY ID
+    @GetMapping("/users/{id}")
+    public ResponseEntity<User> getUser(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.findById(id));
+    }
+
+    // CREATE USER
+    @PostMapping("/users")
+    public ResponseEntity<User> createUser(@RequestBody User user) {
+        return ResponseEntity.ok(userService.saveUser(user));
+    }
+
+    // UPDATE USER
+    @PutMapping("/users/{id}")
+    public ResponseEntity<User> updateUser(
+            @PathVariable Long id,
+            @RequestBody User newUserData
+    ) {
+        newUserData.setId(id);
+        return ResponseEntity.ok(userService.updateUser(newUserData));
+    }
+
+    // DELETE USER
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<String> deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
+        return ResponseEntity.ok("User deleted successfully");
+    }
+
+    // RESET PASSWORD
+    @PutMapping("/users/{id}/password")
+    public ResponseEntity<String> resetPassword(
+            @PathVariable Long id,
+            @RequestBody String newPassword
+    ) {
+        userService.changePassword(id, newPassword);
+        return ResponseEntity.ok("Password updated");
+    }
+}
