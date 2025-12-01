@@ -1,6 +1,8 @@
 package com.taskmanager.taskmanager.controller.api;
 
+import com.taskmanager.taskmanager.dto.AdminDashboardResponse;
 import com.taskmanager.taskmanager.entity.User;
+import com.taskmanager.taskmanager.service.TaskService;
 import com.taskmanager.taskmanager.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -14,9 +16,11 @@ import java.util.List;
 public class AdminRestController {
 
     private final UserService userService;
+    private final TaskService taskService;
 
-    public AdminRestController(UserService userService) {
+    public AdminRestController(UserService userService, TaskService taskService) {
         this.userService = userService;
+        this.taskService = taskService;
     }
 
     // GET ALL USERS
@@ -62,5 +66,20 @@ public class AdminRestController {
     ) {
         userService.changePassword(id, newPassword);
         return ResponseEntity.ok("Password updated");
+    }
+
+    // ⭐ DASHBOARD
+    @GetMapping("/dashboard")
+    public ResponseEntity<AdminDashboardResponse> getDashboardStats() {
+
+        AdminDashboardResponse response = new AdminDashboardResponse();
+
+        response.setTotalUsers(userService.findAllUsers().size());
+        response.setTotalTasks(taskService.findAll().size());
+        response.setTasksTodo(taskService.countByStatus("TODO"));
+        response.setTasksInProgress(taskService.countByStatus("IN_PROGRESS"));
+        response.setTasksDone(taskService.countByStatus("DONE"));
+
+        return ResponseEntity.ok(response);
     }
 }
