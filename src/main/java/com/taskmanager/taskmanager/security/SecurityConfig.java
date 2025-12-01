@@ -21,70 +21,74 @@ public class SecurityConfig {
         this.customUserDetailsService = customUserDetailsService;
     }
 
-    // PASSWORD ENCODER
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // AUTH MANAGER
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
-    // SECURITY FILTER CHAIN
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-                // ✔ CSRF OFF pentru API (Postman + React)
+                // ⭐ React needs CORS
+                .cors(withDefaults())
+
+                // ⭐ CSRF OFF temporarily (needed for API)
                 .csrf(csrf -> csrf.disable())
 
-                // ✔ Autorizații
                 .authorizeHttpRequests(auth -> auth
 
-                        // ------- PUBLIC -------
+                        // PUBLIC
                         .requestMatchers("/login", "/do-login", "/register",
                                 "/css/**", "/js/**", "/images/**")
                         .permitAll()
 
-                        // ------- HTML USER -------
+                        // HTML USER
                         .requestMatchers("/tasks/**")
                         .hasAnyRole("USER", "EDITOR", "ADMIN")
 
-                        // ------- HTML EDITOR -------
+                        // HTML EDITOR
                         .requestMatchers("/editor/**")
                         .hasAnyRole("EDITOR", "ADMIN")
 
-                        // ------- HTML ADMIN -------
+                        // HTML ADMIN
                         .requestMatchers("/admin/**")
                         .hasRole("ADMIN")
 
-                        // ------- API ADMIN -------
-                        .requestMatchers("/api/admin/**")
-                        .hasRole("ADMIN")
+                                // API ADMIN
+                                .requestMatchers("/api/admin/**")
+                                .hasRole("ADMIN")
 
-                        // ------- API EDITOR -------
-                        .requestMatchers("/api/editor/**")
-                        .hasRole("EDITOR")
+// API EDITOR
+                                .requestMatchers("/api/editor/**")
+                                .hasAnyRole("EDITOR", "ADMIN")
 
-                        // ------- API USER (fallback) -------
-                        .requestMatchers("/api/**")
-                        .authenticated()
+// API USER - doar user normal
+                                .requestMatchers("/api/tasks/**")
+                                .hasRole("USER")
 
-                        // TOT CE RAMANE -> AUTENTIFICAT
+// orice API are nevoie de autentificare
+                                .requestMatchers("/api/**")
+                                .authenticated()
+
+
+                                // fallback
                         .anyRequest()
                         .authenticated()
                 )
 
-                // ⭐ IMPORTANT: httpBasic trebuie înainte de formLogin
+                // ⭐ TEMPORARY: Basic Auth for Postman + React
                 .httpBasic(withDefaults())
 
-                // ⭐ Legăm CustomUserDetailsService pentru autentificare corectă
+                // Conectăm user details
                 .userDetailsService(customUserDetailsService)
 
-                // ✔ Login pentru HTML cu formLogin
+                // ⭐ TEMPORARY: form login pentru HTML
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/do-login")
@@ -93,7 +97,7 @@ public class SecurityConfig {
                         .permitAll()
                 )
 
-                // ✔ Logout
+                // LOGOUT
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login?logout=true")
