@@ -75,6 +75,8 @@ public class SecurityConfig {
 // orice API are nevoie de autentificare
                                 .requestMatchers("/api/**")
                                 .authenticated()
+                                .requestMatchers("/api/logout").permitAll()
+
 
 
                                 // fallback
@@ -96,6 +98,7 @@ public class SecurityConfig {
                         .failureUrl("/login?error=true")
                         .permitAll()
                 )
+
 
                 // LOGOUT
                 .logout(logout -> logout
