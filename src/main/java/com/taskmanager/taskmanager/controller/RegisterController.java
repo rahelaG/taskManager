@@ -15,12 +15,20 @@ public class RegisterController {
         this.userService = userService;
     }
 
+    /**
+     * Pagina de register (Thymeleaf).
+     * TODO (Phase 4): Va fi înlocuită de React <RegisterPage>.
+     */
     @GetMapping("/register")
     public String showRegisterForm(Model model) {
         model.addAttribute("user", new User());
         return "register";
     }
 
+    /**
+     * Procesează formularul de înregistrare.
+     * TODO (Phase 4): Logica va rămâne în backend, dar va fi apelată din React.
+     */
     @PostMapping("/register")
     public String processRegister(@ModelAttribute User user) {
 

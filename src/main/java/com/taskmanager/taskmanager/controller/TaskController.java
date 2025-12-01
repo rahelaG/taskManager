@@ -19,6 +19,11 @@ public class TaskController {
         this.taskService = taskService;
     }
 
+    /**
+     * Pagina cu task-urile unui user (Thymeleaf).
+     * TODO (Phase 4): Va fi înlocuită de React <UserTasksPage>,
+     * care va apela API-ul /api/tasks.
+     */
     @GetMapping("/tasks")
     public String listTasks(
             @RequestParam(required = false) String status,

@@ -22,7 +22,11 @@ public class EditorController {
         this.userService = userService;
     }
 
-    // ⭐ 1. LISTA TASK-URI (toate task-urile)
+    /**
+     * Pagina de listare a tuturor task-urilor pentru EDITOR (Thymeleaf).
+     * TODO (Phase 4): Va fi înlocuită de React <EditorTasksPage>,
+     * care va folosi API-ul /api/editor/tasks.
+     */
     @GetMapping("/tasks")
     public String allTasks(
             @RequestParam(required = false) String status,
@@ -39,7 +43,10 @@ public class EditorController {
         return "tasks-editor";
     }
 
-    // ⭐ 2. FORMULAR CREARE TASK
+    /**
+     * Formular de creare task (Thymeleaf).
+     * TODO (Phase 4): Logica de creare va fi apelată din React prin /api/editor/tasks (POST).
+     */
     @GetMapping("/task/create")
     public String createTaskForm(Model model, Authentication authentication) {
         model.addAttribute("username", authentication.getName());
@@ -48,7 +55,6 @@ public class EditorController {
         return "editor-task-create";
     }
 
-    // ⭐ 3. SALVARE TASK NOU
     @PostMapping("/task/save")
     public String saveTask(@ModelAttribute Task task, @RequestParam Long userId) {
         task.setIdCreator(userId);
@@ -56,7 +62,10 @@ public class EditorController {
         return "redirect:/editor/tasks";
     }
 
-    // ⭐ 4. FORMULAR EDITARE TASK
+    /**
+     * Formular de editare task (Thymeleaf).
+     * TODO (Phase 4): Va fi înlocuit de React, care va folosi /api/editor/tasks/{id} (PUT).
+     */
     @GetMapping("/task/edit/{id}")
     public String editTaskForm(@PathVariable Long id, Model model, Authentication authentication) {
         model.addAttribute("username", authentication.getName());
@@ -66,7 +75,6 @@ public class EditorController {
         return "editor-task-edit";
     }
 
-    // ⭐ 5. UPDATE TASK
     @PostMapping("/task/update")
     public String updateTask(@ModelAttribute Task task, @RequestParam Long userId) {
         task.setIdCreator(userId);
@@ -74,14 +82,12 @@ public class EditorController {
         return "redirect:/editor/tasks";
     }
 
-    // ⭐ 6. ȘTERGERE TASK
     @GetMapping("/task/delete/{id}")
     public String deleteTask(@PathVariable Long id) {
         taskService.delete(id);
         return "redirect:/editor/tasks";
     }
 
-    // ⭐ 7. REASIGNARE TASK
     @PostMapping("/task/assign")
     public String assignTask(@RequestParam Long taskId, @RequestParam Long userId) {
         Task task = taskService.findById(taskId);

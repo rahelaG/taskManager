@@ -20,7 +20,11 @@ public class AdminController {
         this.taskService = taskService;
     }
 
-    // LISTARE USERI
+    /**
+     * Pagina HTML de listare a userilor (Thymeleaf).
+     * TODO (Phase 4): Va fi înlocuită de React <AdminUsersPage>,
+     * care va folosi API-ul /api/admin/users.
+     */
     @GetMapping("/users")
     public String listUsers(Model model, Authentication authentication) {
         model.addAttribute("username", authentication.getName());
@@ -28,7 +32,10 @@ public class AdminController {
         return "admin-users";
     }
 
-    // FORMULAR CREARE USER
+    /**
+     * Formular creare user (Thymeleaf).
+     * TODO (Phase 4): Crearea userilor va fi făcută din React via /api/admin/users (POST).
+     */
     @GetMapping("/user/create")
     public String createUserForm(Model model, Authentication authentication) {
         model.addAttribute("username", authentication.getName());
@@ -36,14 +43,16 @@ public class AdminController {
         return "admin-user-create";
     }
 
-    // SALVARE USER NOU
     @PostMapping("/user/save")
     public String saveUser(@ModelAttribute User user) {
         userService.saveUser(user);
         return "redirect:/admin/users";
     }
 
-    // FORMULAR EDITARE USER
+    /**
+     * Formular editare user (Thymeleaf).
+     * TODO (Phase 4): Editarea va fi mutată în React și va folosi /api/admin/users/{id} (PUT).
+     */
     @GetMapping("/user/edit/{id}")
     public String editUserForm(@PathVariable Long id, Model model, Authentication authentication) {
         model.addAttribute("username", authentication.getName());
@@ -51,14 +60,12 @@ public class AdminController {
         return "admin-user-edit";
     }
 
-    // UPDATE USER
     @PostMapping("/user/update")
     public String updateUser(@ModelAttribute User user) {
         userService.updateUser(user);
         return "redirect:/admin/users";
     }
 
-    // SCHIMBARE PAROLA
     @PostMapping("/user/reset-password")
     public String resetPassword(
             @RequestParam Long id,
@@ -68,14 +75,17 @@ public class AdminController {
         return "redirect:/admin/users";
     }
 
-    // ȘTERGERE USER
     @GetMapping("/user/delete/{id}")
     public String deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
         return "redirect:/admin/users";
     }
 
-    // DASHBOARD
+    /**
+     * Pagina dashboard admin (Thymeleaf).
+     * TODO (Phase 4): Va fi înlocuită de React <AdminDashboardPage>,
+     * care va folosi API-uri pentru statistici.
+     */
     @GetMapping("/dashboard")
     public String dashboard(Model model, Authentication authentication) {
 

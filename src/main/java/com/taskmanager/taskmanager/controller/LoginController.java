@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class LoginController {
 
     /**
-     * Mapeaza cererea GET catre /login si returneaza pagina HTML de login.
-     * @return Numele fisierului HTML (login.html)
+     * Pagina de login (Thymeleaf).
+     * TODO (Phase 4): Va fi înlocuită de React <LoginPage>.
      */
     @GetMapping("/login")
     public String loginPage() {
