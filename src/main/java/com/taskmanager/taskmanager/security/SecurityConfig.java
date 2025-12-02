@@ -9,8 +9,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
-import static org.springframework.security.config.Customizer.withDefaults;
-
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -35,78 +33,47 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-                // ⭐ React needs CORS
-                .cors(withDefaults())
-
-                // ⭐ CSRF OFF temporarily (needed for API)
+                .cors(c -> {})
                 .csrf(csrf -> csrf.disable())
 
                 .authorizeHttpRequests(auth -> auth
-
-                        // PUBLIC
                         .requestMatchers("/login", "/do-login", "/register",
-                                "/css/**", "/js/**", "/images/**")
-                        .permitAll()
+                                "/css/**", "/js/**", "/images/**").permitAll()
 
-                        // HTML USER
-                        .requestMatchers("/tasks/**")
-                        .hasAnyRole("USER", "EDITOR", "ADMIN")
+                        .requestMatchers("/api/register").permitAll()
 
-                        // HTML EDITOR
-                        .requestMatchers("/editor/**")
-                        .hasAnyRole("EDITOR", "ADMIN")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/editor/**").hasAnyRole("EDITOR", "ADMIN")
+                        .requestMatchers("/api/tasks/**").hasRole("USER")
 
-                        // HTML ADMIN
-                        .requestMatchers("/admin/**")
-                        .hasRole("ADMIN")
+                        .requestMatchers("/api/**").authenticated()
 
-                                // API ADMIN
-                                .requestMatchers("/api/admin/**")
-                                .hasRole("ADMIN")
-
-// API EDITOR
-                                .requestMatchers("/api/editor/**")
-                                .hasAnyRole("EDITOR", "ADMIN")
-
-// API USER - doar user normal
-                                .requestMatchers("/api/tasks/**")
-                                .hasRole("USER")
-
-// orice API are nevoie de autentificare
-                                .requestMatchers("/api/**")
-                                .authenticated()
-                                .requestMatchers("/api/logout").permitAll()
-
-
-
-                                // fallback
-                        .anyRequest()
-                        .authenticated()
+                        .anyRequest().authenticated()
                 )
 
-                // ⭐ TEMPORARY: Basic Auth for Postman + React
-                .httpBasic(withDefaults())
+                // ❗ FOARTE IMPORTANT: fără Basic Auth !!!
+                // .httpBasic(withDefaults())
 
-                // Conectăm user details
-                .userDetailsService(customUserDetailsService)
-
-                // ⭐ TEMPORARY: form login pentru HTML
                 .formLogin(form -> form
-                        .loginPage("/login")
                         .loginProcessingUrl("/do-login")
-                        .defaultSuccessUrl("/redirectByRole", true)
-                        .failureUrl("/login?error=true")
+                        .successHandler((request, response, authentication) -> {
+                            response.setStatus(200); // SUCCESS pentru React
+                        })
+                        .failureHandler((request, response, exception) -> {
+                            response.setStatus(401); // FAIL pentru React
+                        })
                         .permitAll()
                 )
 
-
-                // LOGOUT
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login?logout=true")
                         .permitAll()
-                );
+                )
+
+                .userDetailsService(customUserDetailsService);
 
         return http.build();
     }
 }
+

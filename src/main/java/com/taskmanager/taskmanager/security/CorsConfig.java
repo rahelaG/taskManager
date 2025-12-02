@@ -6,8 +6,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
-import java.util.List;
-
 @Configuration
 public class CorsConfig {
 
@@ -16,16 +14,16 @@ public class CorsConfig {
 
         CorsConfiguration config = new CorsConfiguration();
 
-        // ***** ORIGINEA FRONTEND-ULUI (React) *****
-        config.setAllowedOrigins(List.of("http://localhost:5174"));
+        // ORIGINEA FRONTEND-ULUI
+        config.addAllowedOrigin("http://localhost:5173");
 
-        // ***** METODE PERMISE *****
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        // PERMITEM TOATE HEADERELE
+        config.addAllowedHeader("*");
 
-        // ***** HEADERS PERMISE *****
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        // PERMITEM TOATE METODELE
+        config.addAllowedMethod("*");
 
-        // ***** PERMITEM COOKIE/SESSION (pentru Basic Auth TEMPORAR) *****
+        // PERMITEM COOKIE-URI / SESIUNI
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

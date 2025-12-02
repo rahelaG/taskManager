@@ -11,13 +11,13 @@ interface User {
   id: number;
   username: string;
   nume: string;
-  rol: string; // ROLE_USER / ROLE_EDITOR / ROLE_ADMIN
+  rol: string;
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (username: string, password: string) => Promise<boolean>;
+  login: (username: string, password: string) => Promise<User | null>;
   logout: () => Promise<void>;
 }
 
@@ -28,14 +28,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   // -------------------------
-  // 1️⃣ FETCH USERUL LOGAT
+  // FETCH USER LOGAT
   // -------------------------
-  const fetchCurrentUser = async () => {
+  const fetchCurrentUser = async (): Promise<User | null> => {
     try {
-      const response = await api.get("/auth/me");
+      const response = await api.get("/api/auth/me");
       setUser(response.data);
-    } catch (err) {
-      setUser(null); // nu e logat
+      return response.data;
+    } catch {
+      setUser(null);
+      return null;
     } finally {
       setLoading(false);
     }
@@ -46,34 +48,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // -------------------------
-  // 2️⃣ LOGIN
+  // LOGIN
   // -------------------------
   const login = async (
     username: string,
     password: string
-  ): Promise<boolean> => {
+  ): Promise<User | null> => {
     try {
       const params = new URLSearchParams();
       params.append("username", username);
       params.append("password", password);
 
-      await api.post("/login", params, {
+      // TRIMITE Direct la backend (fără /api)
+      await api.post("/do-login", params, {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
       });
 
-      await fetchCurrentUser();
-      return true;
-    } catch (error) {
-      return false;
+      return await fetchCurrentUser();
+    } catch {
+      return null;
     }
   };
 
   // -------------------------
-  // 3️⃣ LOGOUT
+  // LOGOUT
   // -------------------------
   const logout = async () => {
-    await api.post("/auth/logout"); // dacă ai /api în Axios baseURL
-    setUser(null);
+    try {
+      await api.post("/api/auth/logout");
+    } finally {
+      setUser(null);
+    }
   };
 
   return (
