@@ -9,6 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -23,25 +24,35 @@ public class AdminRestController {
         this.taskService = taskService;
     }
 
+    // -------------------------
     // GET ALL USERS
+    // -------------------------
     @GetMapping("/users")
     public ResponseEntity<List<User>> getAllUsers() {
         return ResponseEntity.ok(userService.findAllUsers());
     }
 
+    // -------------------------
     // GET USER BY ID
+    // -------------------------
     @GetMapping("/users/{id}")
     public ResponseEntity<User> getUser(@PathVariable Long id) {
-        return ResponseEntity.ok(userService.findById(id));
+        User u = userService.findById(id);
+        if (u == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(u);
     }
 
+    // -------------------------
     // CREATE USER
+    // -------------------------
     @PostMapping("/users")
     public ResponseEntity<User> createUser(@RequestBody User user) {
         return ResponseEntity.ok(userService.saveUser(user));
     }
 
+    // -------------------------
     // UPDATE USER
+    // -------------------------
     @PutMapping("/users/{id}")
     public ResponseEntity<User> updateUser(
             @PathVariable Long id,
@@ -51,24 +62,36 @@ public class AdminRestController {
         return ResponseEntity.ok(userService.updateUser(newUserData));
     }
 
+    // -------------------------
     // DELETE USER
+    // -------------------------
     @DeleteMapping("/users/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
         return ResponseEntity.ok("User deleted successfully");
     }
 
+    // -------------------------
     // RESET PASSWORD
+    // -------------------------
     @PutMapping("/users/{id}/password")
     public ResponseEntity<String> resetPassword(
             @PathVariable Long id,
-            @RequestBody String newPassword
+            @RequestBody Map<String, String> req
     ) {
+        String newPassword = req.get("newPassword");
+
+        if (newPassword == null || newPassword.isBlank()) {
+            return ResponseEntity.badRequest().body("Password cannot be empty");
+        }
+
         userService.changePassword(id, newPassword);
         return ResponseEntity.ok("Password updated");
     }
 
+    // -------------------------
     // ⭐ DASHBOARD
+    // -------------------------
     @GetMapping("/dashboard")
     public ResponseEntity<AdminDashboardResponse> getDashboardStats() {
 
