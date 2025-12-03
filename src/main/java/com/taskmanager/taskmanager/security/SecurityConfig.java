@@ -51,6 +51,11 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
 
+                .exceptionHandling(e -> e
+                        .authenticationEntryPoint((req, res, ex) -> res.setStatus(401))
+                )
+
+
                 // ❗ FOARTE IMPORTANT: fără Basic Auth !!!
                 // .httpBasic(withDefaults())
 
