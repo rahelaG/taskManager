@@ -1,5 +1,6 @@
 package com.taskmanager.taskmanager.controller.api;
 
+import com.taskmanager.taskmanager.dto.AdminCreateUserRequest;
 import com.taskmanager.taskmanager.dto.AdminDashboardResponse;
 import com.taskmanager.taskmanager.entity.User;
 import com.taskmanager.taskmanager.service.TaskService;
@@ -46,7 +47,14 @@ public class AdminRestController {
     // CREATE USER
     // -------------------------
     @PostMapping("/users")
-    public ResponseEntity<User> createUser(@RequestBody User user) {
+    public ResponseEntity<User> createUser(@RequestBody AdminCreateUserRequest req) {
+
+        User user = new User();
+        user.setNume(req.getNume());
+        user.setUtilizator(req.getUtilizator());
+        user.setParola(req.getParola());
+        user.setRol(req.getRol());
+
         return ResponseEntity.ok(userService.saveUser(user));
     }
 

@@ -12,6 +12,7 @@ import AdminDashboardPage from "../pages/AdminDashboardPage";
 import AdminUsersPage from "../pages/AdminUsersPage";
 import EditorTaskCreatePage from "../pages/EditorTaskCreatePage";
 import EditorTaskEditPage from "../pages/EditorTaskEditPage";
+import AdminUserCreatePage from "../pages/AdminUserCreatePage";
 
 export default function AppRouter() {
   return (
@@ -66,6 +67,15 @@ export default function AppRouter() {
         element={
           <ProtectedRoute allowedRoles={["ROLE_ADMIN"]}>
             <AdminDashboardPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/users/create"
+        element={
+          <ProtectedRoute allowedRoles={["ROLE_ADMIN"]}>
+            <AdminUserCreatePage />
           </ProtectedRoute>
         }
       />
