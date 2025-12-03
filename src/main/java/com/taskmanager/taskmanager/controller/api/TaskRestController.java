@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -28,11 +29,12 @@ public class TaskRestController {
     ) {
         String username = authentication.getName();
 
-        String statusOrNull = normalize(status);
-        String prioritateOrNull = normalize(prioritate);
-        String categorieOrNull = normalize(categorie);
-
-        return taskService.filterTasks(statusOrNull, prioritateOrNull, categorieOrNull, username);
+        return taskService.filterTasks(
+                normalize(status),
+                normalize(prioritate),
+                normalize(categorie),
+                username
+        );
     }
 
     // 2. TASK-URILE PENTRU EDITOR (vede toate task-urile)
@@ -42,14 +44,14 @@ public class TaskRestController {
             @RequestParam(required = false) String prioritate,
             @RequestParam(required = false) String categorie
     ) {
-        String statusOrNull = normalize(status);
-        String prioritateOrNull = normalize(prioritate);
-        String categorieOrNull = normalize(categorie);
-
-        return taskService.filterTasksForEditor(statusOrNull, prioritateOrNull, categorieOrNull);
+        return taskService.filterTasksForEditor(
+                normalize(status),
+                normalize(prioritate),
+                normalize(categorie)
+        );
     }
 
-    // 3. GET UN SINGUR TASK (necesar pentru pagina EditorTaskEditPage)
+    // 3. GET UN SINGUR TASK (pentru pagina EditorTaskEditPage)
     @GetMapping("/editor/tasks/{id}")
     public ResponseEntity<Task> getTaskById(@PathVariable Long id) {
         Task task = taskService.findById(id);
@@ -66,19 +68,27 @@ public class TaskRestController {
         return trimmed.isEmpty() ? null : trimmed;
     }
 
-    // 4. CREATE
+    // 4. CREATE — ✔ setează automat dataCreare
     @PostMapping("/editor/tasks")
     public Task createTask(@RequestBody Task task) {
+
+        // 🔥 setează automat dataCreare
+        task.setDataCreare(LocalDate.now());
+
         return taskService.save(task);
     }
 
-    // 5. UPDATE
+    // 5. UPDATE — ✔ păstrează dataCreare originală
     @PutMapping("/editor/tasks/{id}")
     public Task updateTask(@PathVariable Long id, @RequestBody Task updatedTask) {
+
         Task existing = taskService.findById(id);
         if (existing == null) return null;
 
+        // 🔥 nu lăsăm frontend-ul să rescrie dataCreare
         updatedTask.setId(id);
+        updatedTask.setDataCreare(existing.getDataCreare());
+
         return taskService.update(updatedTask);
     }
 
