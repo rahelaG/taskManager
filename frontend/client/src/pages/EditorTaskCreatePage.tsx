@@ -12,9 +12,15 @@ import {
   Card,
   CardBody,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "../services/api";
 import { useNavigate } from "react-router-dom";
+
+interface User {
+  id: number;
+  utilizator: string;
+  nume: string;
+}
 
 export default function EditorTaskCreatePage() {
   const [titlu, setTitlu] = useState("");
@@ -23,15 +29,37 @@ export default function EditorTaskCreatePage() {
   const [prioritate, setPrioritate] = useState("");
   const [categorie, setCategorie] = useState("");
   const [dataLimita, setDataLimita] = useState("");
+  const [idCreator, setIdCreator] = useState<number | null>(null);
+
+  const [users, setUsers] = useState<User[]>([]);
 
   const navigate = useNavigate();
   const toast = useToast();
 
+  // ---------------------------
+  // GET all users (for assign)
+  // ---------------------------
+  const loadUsers = async () => {
+    try {
+      const response = await api.get("/api/users/all");
+      setUsers(response.data);
+    } catch {
+      toast({
+        title: "Nu pot încărca utilizatorii",
+        status: "error",
+      });
+    }
+  };
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
   const handleCreate = async () => {
-    if (!titlu || !status || !prioritate) {
+    if (!titlu || !status || !prioritate || !idCreator) {
       toast({
         title: "Completează câmpurile obligatorii",
-        description: "Titlu, status și prioritate sunt obligatorii.",
+        description: "Titlu, status, prioritate și user sunt obligatorii.",
         status: "warning",
         duration: 3000,
         isClosable: true,
@@ -46,24 +74,20 @@ export default function EditorTaskCreatePage() {
         status,
         prioritate,
         categorie,
-        dataLimita: dataLimita || null, // 🔥 trimitem null dacă e gol
+        dataLimita: dataLimita || null,
+        idCreator, // 🔥 assign user
       });
 
       toast({
         title: "Task creat cu succes!",
         status: "success",
-        duration: 3000,
-        isClosable: true,
       });
 
       navigate("/editor/tasks");
     } catch (err) {
       toast({
         title: "Eroare la creare",
-        description: "Verifică datele introduse.",
         status: "error",
-        duration: 3000,
-        isClosable: true,
       });
     }
   };
@@ -75,13 +99,11 @@ export default function EditorTaskCreatePage() {
       <Card>
         <CardBody>
           <Stack spacing={4}>
-            {/* TITLU */}
             <FormControl isRequired>
               <FormLabel>Titlu</FormLabel>
               <Input value={titlu} onChange={(e) => setTitlu(e.target.value)} />
             </FormControl>
 
-            {/* DESCRIERE */}
             <FormControl>
               <FormLabel>Descriere</FormLabel>
               <Textarea
@@ -90,7 +112,6 @@ export default function EditorTaskCreatePage() {
               />
             </FormControl>
 
-            {/* STATUS */}
             <FormControl isRequired>
               <FormLabel>Status</FormLabel>
               <Select
@@ -104,7 +125,6 @@ export default function EditorTaskCreatePage() {
               </Select>
             </FormControl>
 
-            {/* PRIORITATE */}
             <FormControl isRequired>
               <FormLabel>Prioritate</FormLabel>
               <Select
@@ -118,7 +138,6 @@ export default function EditorTaskCreatePage() {
               </Select>
             </FormControl>
 
-            {/* CATEGORIE */}
             <FormControl>
               <FormLabel>Categorie</FormLabel>
               <Input
@@ -127,7 +146,6 @@ export default function EditorTaskCreatePage() {
               />
             </FormControl>
 
-            {/* DEADLINE */}
             <FormControl>
               <FormLabel>Deadline</FormLabel>
               <Input
@@ -135,6 +153,22 @@ export default function EditorTaskCreatePage() {
                 value={dataLimita}
                 onChange={(e) => setDataLimita(e.target.value)}
               />
+            </FormControl>
+
+            {/* 🔥 ASSIGN USER */}
+            <FormControl isRequired>
+              <FormLabel>Atribuie utilizator</FormLabel>
+              <Select
+                placeholder="Alege utilizator"
+                value={idCreator ?? ""}
+                onChange={(e) => setIdCreator(Number(e.target.value))}
+              >
+                {users.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.nume} ({u.utilizator})
+                  </option>
+                ))}
+              </Select>
             </FormControl>
 
             <Button colorScheme="blue" onClick={handleCreate}>

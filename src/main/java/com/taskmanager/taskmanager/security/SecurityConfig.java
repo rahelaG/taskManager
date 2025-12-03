@@ -43,6 +43,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/register").permitAll()
 
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/users").hasAnyRole("ADMIN", "EDITOR")
+                        .requestMatchers("/api/users/all").hasAnyRole("EDITOR", "ADMIN")
+
+
                         .requestMatchers("/api/editor/**").hasAnyRole("EDITOR", "ADMIN")
                         .requestMatchers("/api/tasks/**").hasRole("USER")
 

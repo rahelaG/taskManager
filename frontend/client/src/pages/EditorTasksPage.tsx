@@ -15,6 +15,7 @@ import { useEffect, useState } from "react";
 import { api } from "../services/api";
 import { Link as RouterLink } from "react-router-dom";
 
+// ----------- INTERFETE -----------
 interface Task {
   id: number;
   titlu: string;
@@ -24,12 +25,25 @@ interface Task {
   categorie: string;
   dataCreare: string;
   dataLimita: string;
+  idCreator: number;
+}
+
+interface User {
+  id: number;
+  nume: string;
+  utilizator: string;
 }
 
 export default function EditorTasksPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const toast = useToast();
+
+  // MAPARE userId → nume
+  const userMap = Object.fromEntries(
+    users.map((u) => [u.id, `${u.nume} (${u.utilizator})`])
+  );
 
   // ------------------------------------------------
   // FETCH TASKS
@@ -44,13 +58,26 @@ export default function EditorTasksPage() {
         title: "Error loading tasks",
         status: "error",
       });
-    } finally {
-      setLoading(false);
+    }
+  };
+
+  // ------------------------------------------------
+  // FETCH USERS
+  // ------------------------------------------------
+  const fetchUsers = async () => {
+    try {
+      const response = await api.get("/api/users/all");
+      setUsers(response.data);
+    } catch {
+      toast({
+        title: "Error loading users",
+        status: "error",
+      });
     }
   };
 
   useEffect(() => {
-    fetchTasks();
+    Promise.all([fetchTasks(), fetchUsers()]).finally(() => setLoading(false));
   }, []);
 
   // ------------------------------------------------
@@ -97,7 +124,7 @@ export default function EditorTasksPage() {
         </Button>
       </Flex>
 
-      {/* LISTA TASK-URI */}
+      {/* LISTA TASKURI */}
       {tasks.length === 0 ? (
         <Text>No tasks found.</Text>
       ) : (
@@ -110,7 +137,6 @@ export default function EditorTasksPage() {
                   {task.descriere}
                 </Text>
 
-                {/* BADGE-URI */}
                 <Flex gap={2} mt={3} wrap="wrap">
                   <Badge
                     colorScheme={
@@ -141,12 +167,16 @@ export default function EditorTasksPage() {
                   )}
                 </Flex>
 
+                {/* 🔥 USER ASSIGNED */}
+                <Text fontSize="sm" mt={3} fontWeight="bold">
+                  Assigned to: {userMap[task.idCreator] || "— Neasignat —"}
+                </Text>
+
                 <Text fontSize="sm" mt={2}>
                   Created: {task.dataCreare}
                 </Text>
                 <Text fontSize="sm">Deadline: {task.dataLimita}</Text>
 
-                {/* BUTTONS EDIT + DELETE */}
                 <Flex gap={2} mt={4}>
                   <Button
                     as={RouterLink}

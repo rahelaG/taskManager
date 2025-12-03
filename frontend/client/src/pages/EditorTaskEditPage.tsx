@@ -17,22 +17,32 @@ import { useEffect, useState } from "react";
 import { api } from "../services/api";
 import { useNavigate, useParams } from "react-router-dom";
 
+interface User {
+  id: number;
+  nume: string;
+  utilizator: string;
+  rol: string;
+}
+
 export default function EditorTaskEditPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const toast = useToast();
 
   const [loading, setLoading] = useState(true);
+  const [users, setUsers] = useState<User[]>([]);
 
+  // TASK fields
   const [titlu, setTitlu] = useState("");
   const [descriere, setDescriere] = useState("");
   const [status, setStatus] = useState("");
   const [prioritate, setPrioritate] = useState("");
   const [categorie, setCategorie] = useState("");
   const [dataLimita, setDataLimita] = useState("");
+  const [idCreator, setIdCreator] = useState<number | null>(null);
 
   // -------------------------------
-  // 1️⃣ FETCH TASK BY ID
+  // 1️⃣ LOAD TASK
   // -------------------------------
   const loadTask = async () => {
     try {
@@ -45,23 +55,37 @@ export default function EditorTaskEditPage() {
       setPrioritate(task.prioritate);
       setCategorie(task.categorie || "");
       setDataLimita(task.dataLimita || "");
+      setIdCreator(task.idCreator || null);
     } catch (err) {
       toast({
         title: "Eroare la încărcarea task-ului",
         status: "error",
         duration: 3000,
       });
-    } finally {
-      setLoading(false);
+    }
+  };
+
+  // -------------------------------
+  // 2️⃣ LOAD USERS (pentru assign)
+  // -------------------------------
+  const loadUsers = async () => {
+    try {
+      const response = await api.get("/api/users/all");
+      setUsers(response.data);
+    } catch {
+      toast({
+        title: "Eroare la încărcarea utilizatorilor",
+        status: "error",
+      });
     }
   };
 
   useEffect(() => {
-    loadTask();
+    Promise.all([loadTask(), loadUsers()]).finally(() => setLoading(false));
   }, []);
 
   // -------------------------------
-  // 2️⃣ UPDATE TASK
+  // 3️⃣ UPDATE TASK
   // -------------------------------
   const handleUpdate = async () => {
     try {
@@ -72,24 +96,53 @@ export default function EditorTaskEditPage() {
         prioritate,
         categorie,
         dataLimita: dataLimita || null,
+        idCreator,
       });
 
       toast({
         title: "Task actualizat!",
         status: "success",
-        duration: 3000,
       });
 
       navigate("/editor/tasks");
-    } catch (err) {
+    } catch {
       toast({
         title: "Eroare la actualizare",
         status: "error",
-        duration: 3000,
       });
     }
   };
 
+  // -------------------------------
+  // 4️⃣ ASSIGN USER
+  // -------------------------------
+  const handleAssign = async () => {
+    if (!idCreator) {
+      toast({
+        title: "Selectează un utilizator",
+        status: "warning",
+      });
+      return;
+    }
+
+    try {
+      await api.post(`/api/editor/tasks/${id}/assign?userId=${idCreator}`);
+
+      toast({
+        title: "Task reasignat!",
+        status: "success",
+      });
+    } catch {
+      toast({
+        title: "Eroare la reasignare",
+        status: "error",
+      });
+    }
+  };
+
+  // -------------------------------
+  // UI LOADING
+  // -------------------------------
   if (loading) {
     return (
       <Box textAlign="center" mt={20}>
@@ -102,7 +155,7 @@ export default function EditorTaskEditPage() {
     <Box p={8}>
       <Heading mb={6}>Editează Task #{id}</Heading>
 
-      <Card>
+      <Card mb={10}>
         <CardBody>
           <Stack spacing={4}>
             <FormControl>
@@ -161,6 +214,38 @@ export default function EditorTaskEditPage() {
 
             <Button colorScheme="blue" onClick={handleUpdate}>
               Salvează modificările
+            </Button>
+          </Stack>
+        </CardBody>
+      </Card>
+
+      {/* ---------------------------------------
+          🟣 SECTION: ASSIGN USER
+      ---------------------------------------- */}
+      <Card>
+        <CardBody>
+          <Heading size="md" mb={4}>
+            Reasignează Task-ul
+          </Heading>
+
+          <Stack spacing={4}>
+            <FormControl>
+              <FormLabel>Alege utilizator</FormLabel>
+              <Select
+                value={idCreator ?? ""}
+                onChange={(e) => setIdCreator(Number(e.target.value))}
+              >
+                <option value="">Selectează...</option>
+                {users.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.nume} ({u.utilizator})
+                  </option>
+                ))}
+              </Select>
+            </FormControl>
+
+            <Button colorScheme="purple" onClick={handleAssign}>
+              Reasignează Task
             </Button>
           </Stack>
         </CardBody>
