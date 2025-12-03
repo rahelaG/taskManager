@@ -11,6 +11,7 @@ import EditorTasksPage from "../pages/EditorTasksPage";
 import AdminDashboardPage from "../pages/AdminDashboardPage";
 import AdminUsersPage from "../pages/AdminUsersPage";
 import EditorTaskCreatePage from "../pages/EditorTaskCreatePage";
+import EditorTaskEditPage from "../pages/EditorTaskEditPage";
 
 export default function AppRouter() {
   return (
@@ -46,6 +47,15 @@ export default function AppRouter() {
         element={
           <ProtectedRoute allowedRoles={["ROLE_EDITOR", "ROLE_ADMIN"]}>
             <EditorTaskCreatePage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/editor/tasks/:id/edit"
+        element={
+          <ProtectedRoute allowedRoles={["ROLE_EDITOR", "ROLE_ADMIN"]}>
+            <EditorTaskEditPage />
           </ProtectedRoute>
         }
       />

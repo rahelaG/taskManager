@@ -88,6 +88,7 @@ export default function EditorTasksPage() {
 
   return (
     <Box p={8}>
+      {/* HEADER + BUTTON CREATE */}
       <Flex justify="space-between" align="center" mb={6}>
         <Heading>Editor – All Tasks</Heading>
 
@@ -96,22 +97,48 @@ export default function EditorTasksPage() {
         </Button>
       </Flex>
 
+      {/* LISTA TASK-URI */}
       {tasks.length === 0 ? (
         <Text>No tasks found.</Text>
       ) : (
         <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
           {tasks.map((task) => (
-            <Card key={task.id}>
+            <Card key={task.id} border="1px solid #e2e8f0">
               <CardBody>
                 <Heading size="md">{task.titlu}</Heading>
                 <Text mt={2} color="gray.600">
                   {task.descriere}
                 </Text>
 
+                {/* BADGE-URI */}
                 <Flex gap={2} mt={3} wrap="wrap">
-                  <Badge>{task.status}</Badge>
-                  <Badge>{task.prioritate}</Badge>
-                  {task.categorie && <Badge>{task.categorie}</Badge>}
+                  <Badge
+                    colorScheme={
+                      task.status === "DONE"
+                        ? "green"
+                        : task.status === "IN_PROGRESS"
+                        ? "yellow"
+                        : "blue"
+                    }
+                  >
+                    {task.status}
+                  </Badge>
+
+                  <Badge
+                    colorScheme={
+                      task.prioritate === "HIGH"
+                        ? "red"
+                        : task.prioritate === "MEDIUM"
+                        ? "orange"
+                        : "gray"
+                    }
+                  >
+                    {task.prioritate}
+                  </Badge>
+
+                  {task.categorie && (
+                    <Badge colorScheme="purple">{task.categorie}</Badge>
+                  )}
                 </Flex>
 
                 <Text fontSize="sm" mt={2}>
@@ -119,6 +146,7 @@ export default function EditorTasksPage() {
                 </Text>
                 <Text fontSize="sm">Deadline: {task.dataLimita}</Text>
 
+                {/* BUTTONS EDIT + DELETE */}
                 <Flex gap={2} mt={4}>
                   <Button
                     as={RouterLink}
