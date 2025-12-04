@@ -72,5 +72,10 @@ public class TaskServiceImpl implements TaskService {
     public int countByStatus(String status) {
         return taskRepository.countByStatus(status);
     }
+    @Override
+    public int countByPriority(String prioritate) {
+        return taskRepository.countByPrioritate(prioritate);
+    }
+
 
 }

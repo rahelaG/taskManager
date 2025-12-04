@@ -20,4 +20,6 @@ public interface TaskService {
 
     List<Task> findAll();
     int countByStatus(String status);
+
+    int countByPriority(String prioritate);
 }
