@@ -71,7 +71,7 @@ export default function EditorTaskEditPage() {
   const loadUsers = async () => {
     try {
       const response = await api.get("/api/users/all");
-      setUsers(response.data);
+      setUsers(response.data.filter((u: User) => u.rol === "ROLE_USER"));
     } catch {
       toast({
         title: "Eroare la încărcarea utilizatorilor",

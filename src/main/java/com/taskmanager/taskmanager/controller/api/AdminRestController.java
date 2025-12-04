@@ -102,7 +102,7 @@ public class AdminRestController {
     }
 
     // -------------------------
-    // ⭐ DASHBOARD
+    //  DASHBOARD
     // -------------------------
     @GetMapping("/dashboard")
     public ResponseEntity<AdminDashboardResponse> getDashboardStats() {

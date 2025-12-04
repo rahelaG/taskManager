@@ -146,7 +146,7 @@ public class AdminDashboardResponse {
 
 
     // ===================================================
-    // 🔥 INNER CLASS 1 — TOP USERS
+    // INNER CLASS 1 — TOP USERS
     // ===================================================
     public static class TopUser {
         private String nume;
@@ -180,7 +180,7 @@ public class AdminDashboardResponse {
 
 
     // ===================================================
-    // 🔥 INNER CLASS 2 — RECENT TASKS
+    //  INNER CLASS 2 — RECENT TASKS
     // ===================================================
     public static class RecentTask {
         private String titlu;

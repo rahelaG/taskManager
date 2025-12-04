@@ -1,4 +1,4 @@
-package com.taskmanager.taskmanager.controller;
+package com.taskmanager.taskmanager.controller_archived;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;

@@ -16,7 +16,7 @@ public class UserRestController {
         this.userService = userService;
     }
 
-    // 🔥 EDITOR + ADMIN pot vedea lista userilor
+    //  EDITOR + ADMIN pot vedea lista userilor
     @GetMapping("/users/all")
     public List<User> getAllUsers() {
         return userService.findAllUsers();

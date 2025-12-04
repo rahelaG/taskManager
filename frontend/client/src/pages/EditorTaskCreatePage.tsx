@@ -20,6 +20,7 @@ interface User {
   id: number;
   utilizator: string;
   nume: string;
+  rol: string;
 }
 
 export default function EditorTaskCreatePage() {
@@ -36,13 +37,13 @@ export default function EditorTaskCreatePage() {
   const navigate = useNavigate();
   const toast = useToast();
 
-  // ---------------------------
-  // GET all users (for assign)
-  // ---------------------------
+  // GET all users (filtered!)
   const loadUsers = async () => {
     try {
       const response = await api.get("/api/users/all");
-      setUsers(response.data);
+      setUsers(
+        response.data.filter((u: User) => u.rol === "ROLE_USER") // 🔥
+      );
     } catch {
       toast({
         title: "Nu pot încărca utilizatorii",
@@ -61,8 +62,6 @@ export default function EditorTaskCreatePage() {
         title: "Completează câmpurile obligatorii",
         description: "Titlu, status, prioritate și user sunt obligatorii.",
         status: "warning",
-        duration: 3000,
-        isClosable: true,
       });
       return;
     }
@@ -75,20 +74,13 @@ export default function EditorTaskCreatePage() {
         prioritate,
         categorie,
         dataLimita: dataLimita || null,
-        idCreator, // 🔥 assign user
+        idCreator,
       });
 
-      toast({
-        title: "Task creat cu succes!",
-        status: "success",
-      });
-
+      toast({ title: "Task creat!", status: "success" });
       navigate("/editor/tasks");
-    } catch (err) {
-      toast({
-        title: "Eroare la creare",
-        status: "error",
-      });
+    } catch {
+      toast({ title: "Eroare la creare", status: "error" });
     }
   };
 
@@ -155,7 +147,7 @@ export default function EditorTaskCreatePage() {
               />
             </FormControl>
 
-            {/* 🔥 ASSIGN USER */}
+            {/* ASSIGN USER (only ROLE_USER) */}
             <FormControl isRequired>
               <FormLabel>Atribuie utilizator</FormLabel>
               <Select

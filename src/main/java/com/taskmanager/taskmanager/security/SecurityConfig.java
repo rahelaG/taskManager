@@ -60,7 +60,7 @@ public class SecurityConfig {
                 )
 
 
-                // ❗ FOARTE IMPORTANT: fără Basic Auth !!!
+                //  FOARTE IMPORTANT: fără Basic Auth !!!
                 // .httpBasic(withDefaults())
 
                 .formLogin(form -> form
