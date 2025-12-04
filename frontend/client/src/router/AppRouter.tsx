@@ -13,6 +13,7 @@ import AdminUsersPage from "../pages/AdminUsersPage";
 import EditorTaskCreatePage from "../pages/EditorTaskCreatePage";
 import EditorTaskEditPage from "../pages/EditorTaskEditPage";
 import AdminUserCreatePage from "../pages/AdminUserCreatePage";
+import AdminUserEditPage from "../pages/AdminUserEditPage";
 
 export default function AppRouter() {
   return (
@@ -85,6 +86,14 @@ export default function AppRouter() {
         element={
           <ProtectedRoute allowedRoles={["ROLE_ADMIN"]}>
             <AdminUsersPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/users/:id/edit"
+        element={
+          <ProtectedRoute allowedRoles={["ROLE_ADMIN"]}>
+            <AdminUserEditPage />
           </ProtectedRoute>
         }
       />
