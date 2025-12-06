@@ -5,6 +5,7 @@ import {
   FormLabel,
   Input,
   Select,
+  FormErrorMessage,
   Stack,
   Heading,
   Card,
@@ -13,6 +14,7 @@ import {
   Spinner,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { api } from "../services/api";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -23,26 +25,64 @@ interface User {
   rol: string;
 }
 
+type EditUserForm = {
+  nume: string;
+  utilizator: string;
+  rol: string;
+};
+
+type PasswordForm = {
+  newPassword: string;
+};
+
 export default function AdminUserEditPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const toast = useToast();
 
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<User | null>(null);
 
-  const [newPassword, setNewPassword] = useState("");
+  // ================================
+  // 1. MAIN USER FORM
+  // ================================
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting, isValid },
+  } = useForm<EditUserForm>({ mode: "onChange" });
 
-  // ------------------------------------
-  // 1️⃣ LOAD USER INFO
-  // ------------------------------------
+  // ================================
+  // 2. PASSWORD RESET FORM
+  // ================================
+  const {
+    register: registerPass,
+    handleSubmit: handlePasswordSubmit,
+    reset: resetPassword,
+    formState: {
+      errors: passErrors,
+      isSubmitting: passSubmitting,
+      isValid: passValid,
+    },
+  } = useForm<PasswordForm>({ mode: "onChange" });
+
+  // ================================
+  // LOAD USER
+  // ================================
   const loadUser = async () => {
     try {
       const response = await api.get(`/api/admin/users/${id}`);
-      setUser(response.data);
-    } catch (err) {
+      const data: User = response.data;
+
+      // populate main form
+      reset({
+        nume: data.nume,
+        utilizator: data.utilizator,
+        rol: data.rol,
+      });
+    } catch {
       toast({
-        title: "Eroare la încărcarea utilizatorului",
+        title: "Error loading user",
         status: "error",
       });
     } finally {
@@ -54,7 +94,7 @@ export default function AdminUserEditPage() {
     loadUser();
   }, []);
 
-  if (loading || !user) {
+  if (loading) {
     return (
       <Box textAlign="center" mt={20}>
         <Spinner size="xl" />
@@ -62,136 +102,159 @@ export default function AdminUserEditPage() {
     );
   }
 
-  // ------------------------------------
-  // 2️⃣ SAVE USER UPDATE
-  // ------------------------------------
-  const handleSave = async () => {
+  // ================================
+  // SAVE USER UPDATE
+  // ================================
+  const onSubmitUser = async (values: EditUserForm) => {
     try {
-      await api.put(`/api/admin/users/${id}`, {
-        nume: user.nume,
-        utilizator: user.utilizator,
-        rol: user.rol,
-      });
+      await api.put(`/api/admin/users/${id}`, values);
 
       toast({
-        title: "Utilizator actualizat!",
+        title: "User updated successfully",
         status: "success",
       });
 
       navigate("/admin/users");
-    } catch (err) {
+    } catch {
       toast({
-        title: "Eroare la actualizare",
+        title: "Update failed",
         status: "error",
       });
     }
   };
 
-  // ------------------------------------
-  // 3️⃣ RESET PASSWORD
-  // ------------------------------------
-  const handlePasswordReset = async () => {
-    if (!newPassword.trim()) {
-      toast({
-        title: "Introdu o parolă!",
-        status: "warning",
-      });
-      return;
-    }
-
+  // ================================
+  // RESET PASSWORD
+  // ================================
+  const onSubmitPassword = async (values: PasswordForm) => {
     try {
       await api.put(`/api/admin/users/${id}/password`, {
-        newPassword: newPassword,
+        newPassword: values.newPassword,
       });
 
       toast({
-        title: "Parolă resetată!",
+        title: "Password updated",
         status: "success",
       });
 
-      setNewPassword("");
-    } catch (err) {
+      resetPassword();
+    } catch {
       toast({
-        title: "Eroare la resetare parolă",
+        title: "Password reset failed",
         status: "error",
       });
     }
   };
 
+  // ================================
+  // UI
+  // ================================
   return (
     <Box p={8}>
-      <Heading mb={6}>Editează utilizator #{id}</Heading>
+      <Heading mb={6}>Edit user #{id}</Heading>
 
-      {/* ----------------------------- */}
-      {/* 🟦 CARD: Editare Date User */}
-      {/* ----------------------------- */}
+      {/* ===================================== */}
+      {/* CARD: EDIT USER DETAILS               */}
+      {/* ===================================== */}
       <Card mb={8}>
         <CardBody>
           <Heading size="md" mb={4}>
-            Date utilizator
+            User details
           </Heading>
 
-          <Stack spacing={4}>
-            <FormControl>
-              <FormLabel>Nume complet</FormLabel>
-              <Input
-                value={user.nume}
-                onChange={(e) => setUser({ ...user, nume: e.target.value })}
-              />
-            </FormControl>
+          <Box as="form" onSubmit={handleSubmit(onSubmitUser)}>
+            <Stack spacing={4}>
+              {/* FULL NAME */}
+              <FormControl isInvalid={!!errors.nume}>
+                <FormLabel>Full name</FormLabel>
+                <Input
+                  {...register("nume", {
+                    required: "Full name is required",
+                    minLength: { value: 2, message: "Minimum 2 characters" },
+                  })}
+                />
+                <FormErrorMessage>{errors.nume?.message}</FormErrorMessage>
+              </FormControl>
 
-            <FormControl>
-              <FormLabel>Username</FormLabel>
-              <Input
-                value={user.utilizator}
-                onChange={(e) =>
-                  setUser({ ...user, utilizator: e.target.value })
-                }
-              />
-            </FormControl>
+              {/* USERNAME */}
+              <FormControl isInvalid={!!errors.utilizator}>
+                <FormLabel>Username</FormLabel>
+                <Input
+                  {...register("utilizator", {
+                    required: "Username is required",
+                    minLength: { value: 3, message: "Minimum 3 characters" },
+                  })}
+                />
+                <FormErrorMessage>
+                  {errors.utilizator?.message}
+                </FormErrorMessage>
+              </FormControl>
 
-            <FormControl>
-              <FormLabel>Rol</FormLabel>
-              <Select
-                value={user.rol}
-                onChange={(e) => setUser({ ...user, rol: e.target.value })}
+              {/* ROLE */}
+              <FormControl isInvalid={!!errors.rol}>
+                <FormLabel>Role</FormLabel>
+                <Select {...register("rol", { required: "Role is required" })}>
+                  <option value="ROLE_USER">ROLE_USER</option>
+                  <option value="ROLE_EDITOR">ROLE_EDITOR</option>
+                  <option value="ROLE_ADMIN">ROLE_ADMIN</option>
+                </Select>
+                <FormErrorMessage>{errors.rol?.message}</FormErrorMessage>
+              </FormControl>
+
+              {/* SUBMIT */}
+              <Button
+                type="submit"
+                colorScheme="blue"
+                isLoading={isSubmitting}
+                isDisabled={!isValid}
               >
-                <option value="ROLE_USER">ROLE_USER</option>
-                <option value="ROLE_EDITOR">ROLE_EDITOR</option>
-                <option value="ROLE_ADMIN">ROLE_ADMIN</option>
-              </Select>
-            </FormControl>
-
-            <Button colorScheme="blue" onClick={handleSave}>
-              Salvează modificările
-            </Button>
-          </Stack>
+                Save changes
+              </Button>
+            </Stack>
+          </Box>
         </CardBody>
       </Card>
 
-      {/* ----------------------------- */}
-      {/* 🟥 CARD: Resetare Parolă */}
-      {/* ----------------------------- */}
+      {/* ===================================== */}
+      {/* CARD: RESET PASSWORD                  */}
+      {/* ===================================== */}
       <Card>
         <CardBody>
           <Heading size="md" mb={4}>
-            Resetare parolă
+            Reset password
           </Heading>
 
-          <Stack spacing={4}>
-            <FormControl>
-              <FormLabel>Parolă nouă</FormLabel>
-              <Input
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-              />
-            </FormControl>
+          <Box as="form" onSubmit={handlePasswordSubmit(onSubmitPassword)}>
+            <Stack spacing={4}>
+              {/* NEW PASSWORD */}
+              <FormControl isInvalid={!!passErrors.newPassword}>
+                <FormLabel>New password</FormLabel>
+                <Input
+                  type="password"
+                  {...registerPass("newPassword", {
+                    required: "Password is required",
+                    minLength: {
+                      value: 6,
+                      message: "Minimum 6 characters",
+                    },
+                  })}
+                />
+                <FormErrorMessage>
+                  {passErrors.newPassword?.message}
+                </FormErrorMessage>
+              </FormControl>
 
-            <Button colorScheme="red" onClick={handlePasswordReset}>
-              Resetează Parola
-            </Button>
-          </Stack>
+              {/* SUBMIT */}
+              <Button
+                type="submit"
+                colorScheme="red"
+                isLoading={passSubmitting}
+                isDisabled={!passValid}
+              >
+                Reset password
+              </Button>
+            </Stack>
+          </Box>
         </CardBody>
       </Card>
     </Box>

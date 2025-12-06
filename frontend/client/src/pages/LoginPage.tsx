@@ -22,8 +22,8 @@ export default function LoginPage() {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<LoginFormValues>();
+    formState: { errors, isSubmitting, isValid },
+  } = useForm<LoginFormValues>({ mode: "onChange" });
 
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -43,26 +43,25 @@ export default function LoginPage() {
   };
 
   const onSubmit = async (values: LoginFormValues) => {
-    const loggedUser = await login(values.username, values.password);
+    const loggedUser = await login(
+      values.username.trim(),
+      values.password.trim()
+    );
 
-    // ❌ LOGIN FAIL
     if (!loggedUser) {
       toast({
         title: "Login failed",
         description: "Check your username or password.",
         status: "error",
         duration: 3000,
-        isClosable: true,
       });
       return;
     }
 
-    // ✅ LOGIN OK
     toast({
       title: "Login successful",
       status: "success",
       duration: 2000,
-      isClosable: true,
     });
 
     redirectByRole(loggedUser.rol);
@@ -83,27 +82,47 @@ export default function LoginPage() {
     >
       <Box as="form" onSubmit={handleSubmit(onSubmit)}>
         <Stack spacing={4}>
+          {/* USERNAME */}
           <FormControl isInvalid={!!errors.username}>
             <FormLabel>Username</FormLabel>
             <Input
               type="text"
-              {...register("username", { required: "Username is required" })}
+              {...register("username", {
+                required: "Username is required",
+                minLength: {
+                  value: 3,
+                  message: "Minimum 3 characters",
+                },
+                validate: (v) =>
+                  v.trim().length > 0 || "Username cannot contain only spaces",
+              })}
             />
             <FormErrorMessage>{errors.username?.message}</FormErrorMessage>
           </FormControl>
 
+          {/* PASSWORD */}
           <FormControl isInvalid={!!errors.password}>
             <FormLabel>Password</FormLabel>
             <Input
               type="password"
-              {...register("password", { required: "Password is required" })}
+              {...register("password", {
+                required: "Password is required",
+                minLength: {
+                  value: 4,
+                  message: "Minimum 4 characters",
+                },
+                validate: (v) =>
+                  v.trim().length > 0 || "Password cannot contain only spaces",
+              })}
             />
             <FormErrorMessage>{errors.password?.message}</FormErrorMessage>
           </FormControl>
 
+          {/* SUBMIT */}
           <Button
             type="submit"
             isLoading={isSubmitting}
+            isDisabled={!isValid}
             colorScheme="blue"
             w="100%"
           >

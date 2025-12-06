@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import com.taskmanager.taskmanager.service.TaskService;
 import com.taskmanager.taskmanager.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -51,7 +52,7 @@ public class AdminRestController {
     // CREATE USER
     // -------------------------
     @PostMapping("/users")
-    public ResponseEntity<User> createUser(@RequestBody AdminCreateUserRequest req) {
+    public ResponseEntity<User> createUser(@Valid @RequestBody AdminCreateUserRequest req) {
 
         User user = new User();
         user.setNume(req.getNume());
@@ -87,19 +88,24 @@ public class AdminRestController {
     // RESET PASSWORD
     // -------------------------
     @PutMapping("/users/{id}/password")
-    public ResponseEntity<String> resetPassword(
+    public ResponseEntity<?> resetPassword(
             @PathVariable Long id,
             @RequestBody Map<String, String> req
     ) {
         String newPassword = req.get("newPassword");
 
         if (newPassword == null || newPassword.isBlank()) {
-            return ResponseEntity.badRequest().body("Password cannot be empty");
+            return ResponseEntity.badRequest().body(Map.of("newPassword", "Password cannot be empty"));
+        }
+
+        if (newPassword.length() < 6) {
+            return ResponseEntity.badRequest().body(Map.of("newPassword", "Password must be at least 6 characters long"));
         }
 
         userService.changePassword(id, newPassword);
-        return ResponseEntity.ok("Password updated");
+        return ResponseEntity.ok("Password updated successfully");
     }
+
 
     // -------------------------
     //  DASHBOARD

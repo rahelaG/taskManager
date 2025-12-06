@@ -3,6 +3,7 @@ package com.taskmanager.taskmanager.controller.api;
 import com.taskmanager.taskmanager.dto.RegisterRequest;
 import com.taskmanager.taskmanager.entity.User;
 import com.taskmanager.taskmanager.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,7 +18,7 @@ public class RegisterRestController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody RegisterRequest request) {
+    public ResponseEntity<?> registerUser( @Valid @RequestBody RegisterRequest request) {
 
         // mapăm DTO → ENTITY
         User user = new User();

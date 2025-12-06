@@ -5,45 +5,40 @@ import {
   FormLabel,
   Input,
   Select,
+  FormErrorMessage,
   Stack,
-  useToast,
   Heading,
   Card,
   CardBody,
+  useToast,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { api } from "../services/api";
 import { useNavigate } from "react-router-dom";
 
+type CreateUserForm = {
+  nume: string;
+  utilizator: string;
+  parola: string;
+  rol: string;
+};
+
 export default function AdminUserCreatePage() {
-  const [nume, setNume] = useState("");
-  const [utilizator, setUtilizator] = useState("");
-  const [parola, setParola] = useState("");
-  const [rol, setRol] = useState("");
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting, isValid },
+  } = useForm<CreateUserForm>({ mode: "onChange" });
 
   const toast = useToast();
   const navigate = useNavigate();
 
-  const handleCreate = async () => {
-    if (!nume || !utilizator || !parola || !rol) {
-      toast({
-        title: "Completează toate câmpurile!",
-        status: "warning",
-        duration: 3000,
-      });
-      return;
-    }
-
+  const onSubmit = async (values: CreateUserForm) => {
     try {
-      await api.post("/api/admin/users", {
-        nume,
-        utilizator,
-        parola,
-        rol,
-      });
+      await api.post("/api/admin/users", values);
 
       toast({
-        title: "User creat cu succes!",
+        title: "User created successfully",
         status: "success",
         duration: 3000,
       });
@@ -51,8 +46,8 @@ export default function AdminUserCreatePage() {
       navigate("/admin/users");
     } catch (err) {
       toast({
-        title: "Eroare la creare user",
-        description: "Verifică dacă username-ul este unic.",
+        title: "Error creating user",
+        description: "Check if the username already exists.",
         status: "error",
         duration: 3000,
       });
@@ -61,50 +56,87 @@ export default function AdminUserCreatePage() {
 
   return (
     <Box p={8}>
-      <Heading mb={6}>Creează utilizator nou</Heading>
+      <Heading mb={6}>Create new user</Heading>
 
       <Card>
         <CardBody>
-          <Stack spacing={4}>
-            <FormControl>
-              <FormLabel>Nume complet</FormLabel>
-              <Input value={nume} onChange={(e) => setNume(e.target.value)} />
-            </FormControl>
+          <Box as="form" onSubmit={handleSubmit(onSubmit)}>
+            <Stack spacing={4}>
+              {/* NUME */}
+              <FormControl isInvalid={!!errors.nume}>
+                <FormLabel>Full name</FormLabel>
+                <Input
+                  {...register("nume", {
+                    required: "Full name is required",
+                    minLength: {
+                      value: 2,
+                      message: "Minimum 2 characters",
+                    },
+                  })}
+                />
+                <FormErrorMessage>{errors.nume?.message}</FormErrorMessage>
+              </FormControl>
 
-            <FormControl>
-              <FormLabel>Username</FormLabel>
-              <Input
-                value={utilizator}
-                onChange={(e) => setUtilizator(e.target.value)}
-              />
-            </FormControl>
+              {/* USERNAME */}
+              <FormControl isInvalid={!!errors.utilizator}>
+                <FormLabel>Username</FormLabel>
+                <Input
+                  {...register("utilizator", {
+                    required: "Username is required",
+                    minLength: {
+                      value: 3,
+                      message: "Minimum 3 characters",
+                    },
+                  })}
+                />
+                <FormErrorMessage>
+                  {errors.utilizator?.message}
+                </FormErrorMessage>
+              </FormControl>
 
-            <FormControl>
-              <FormLabel>Parolă</FormLabel>
-              <Input
-                type="password"
-                value={parola}
-                onChange={(e) => setParola(e.target.value)}
-              />
-            </FormControl>
+              {/* PAROLA */}
+              <FormControl isInvalid={!!errors.parola}>
+                <FormLabel>Password</FormLabel>
+                <Input
+                  type="password"
+                  {...register("parola", {
+                    required: "Password is required",
+                    minLength: {
+                      value: 6,
+                      message: "Minimum 6 characters",
+                    },
+                  })}
+                />
+                <FormErrorMessage>{errors.parola?.message}</FormErrorMessage>
+              </FormControl>
 
-            <FormControl>
-              <FormLabel>Rol</FormLabel>
-              <Select
-                placeholder="Alege rolul"
-                value={rol}
-                onChange={(e) => setRol(e.target.value)}
+              {/* ROL */}
+              <FormControl isInvalid={!!errors.rol}>
+                <FormLabel>Role</FormLabel>
+                <Select
+                  placeholder="Select role"
+                  {...register("rol", {
+                    required: "Role is required",
+                  })}
+                >
+                  <option value="ROLE_USER">ROLE_USER</option>
+                  <option value="ROLE_EDITOR">ROLE_EDITOR</option>
+                  <option value="ROLE_ADMIN">ROLE_ADMIN</option>
+                </Select>
+                <FormErrorMessage>{errors.rol?.message}</FormErrorMessage>
+              </FormControl>
+
+              {/* SUBMIT */}
+              <Button
+                type="submit"
+                colorScheme="blue"
+                isLoading={isSubmitting}
+                isDisabled={!isValid}
               >
-                <option value="ROLE_USER">ROLE_USER</option>
-                <option value="ROLE_EDITOR">ROLE_EDITOR</option>
-                <option value="ROLE_ADMIN">ROLE_ADMIN</option>
-              </Select>
-            </FormControl>
-
-            <Button colorScheme="blue" onClick={handleCreate}>
-              Creează Utilizator
-            </Button>
-          </Stack>
+                Create user
+              </Button>
+            </Stack>
+          </Box>
         </CardBody>
       </Card>
     </Box>

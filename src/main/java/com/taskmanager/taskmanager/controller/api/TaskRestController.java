@@ -1,7 +1,9 @@
 package com.taskmanager.taskmanager.controller.api;
 
+import com.taskmanager.taskmanager.dto.TaskRequest;
 import com.taskmanager.taskmanager.entity.Task;
 import com.taskmanager.taskmanager.service.TaskService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -68,15 +70,24 @@ public class TaskRestController {
         return trimmed.isEmpty() ? null : trimmed;
     }
 
-    // 4. CREATE — ✔ setează automat dataCreare
-    @PostMapping("/editor/tasks")
-    public Task createTask(@RequestBody Task task) {
+    // 4. CREATE —  setează automat dataCreare
 
-        // 🔥 setează automat dataCreare
+    @PostMapping("/editor/tasks")
+    public Task createTask(@Valid @RequestBody TaskRequest dto) {
+
+        Task task = new Task();
+        task.setTitlu(dto.getTitlu());
+        task.setDescriere(dto.getDescriere());
+        task.setStatus(dto.getStatus());
+        task.setPrioritate(dto.getPrioritate());
+        task.setCategorie(dto.getCategorie());
+        task.setIdCreator(dto.getIdCreator());
+
         task.setDataCreare(LocalDate.now());
 
         return taskService.save(task);
     }
+
 
     // 5. UPDATE — ✔ păstrează dataCreare originală
     @PutMapping("/editor/tasks/{id}")
