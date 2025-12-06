@@ -1,3 +1,4 @@
+// src/components/layout/Navbar.tsx
 import {
   Box,
   Flex,
@@ -7,17 +8,27 @@ import {
   Text,
   useDisclosure,
   Stack,
+  useColorMode,
+  useColorModeValue,
 } from "@chakra-ui/react";
-import { HamburgerIcon, CloseIcon } from "@chakra-ui/icons";
+
+import { HamburgerIcon, CloseIcon, MoonIcon, SunIcon } from "@chakra-ui/icons";
 import { Link as RouterLink, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 export default function Navbar() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { user, logout } = useAuth();
-  const location = useLocation(); // ⭐ necesar pentru a ascunde navbarul
+  const location = useLocation();
 
-  // ⭐ Ascundem navbarul pe login & register
+  const { colorMode, toggleColorMode } = useColorMode();
+
+  // 🎨 CULORI DINAMICE LIGHT / DARK
+  const bg = useColorModeValue("blue.600", "gray.800");
+  const textColor = useColorModeValue("white", "gray.100");
+  const hoverBg = useColorModeValue("whiteAlpha.300", "whiteAlpha.200");
+
+  // Ascundem navbarul pe login & register
   if (location.pathname === "/login" || location.pathname === "/register") {
     return null;
   }
@@ -28,7 +39,7 @@ export default function Navbar() {
   };
 
   return (
-    <Box bg="blue.600" px={4} mb={6}>
+    <Box bg={bg} px={4} mb={6}>
       <Flex h={16} alignItems={"center"} justifyContent={"space-between"}>
         {/* LOGO */}
         <Text
@@ -36,7 +47,7 @@ export default function Navbar() {
           to="/tasks"
           fontSize="xl"
           fontWeight="bold"
-          color="white"
+          color={textColor}
         >
           TaskManager
         </Text>
@@ -51,8 +62,9 @@ export default function Navbar() {
             <Button
               as={RouterLink}
               to="/tasks"
-              colorScheme="whiteAlpha"
+              color={textColor}
               variant="ghost"
+              _hover={{ bg: hoverBg }}
             >
               My Tasks
             </Button>
@@ -62,8 +74,9 @@ export default function Navbar() {
             <Button
               as={RouterLink}
               to="/editor/tasks"
-              colorScheme="whiteAlpha"
+              color={textColor}
               variant="ghost"
+              _hover={{ bg: hoverBg }}
             >
               Editor Tasks
             </Button>
@@ -74,45 +87,60 @@ export default function Navbar() {
               <Button
                 as={RouterLink}
                 to="/admin/dashboard"
-                colorScheme="whiteAlpha"
+                color={textColor}
                 variant="ghost"
+                _hover={{ bg: hoverBg }}
               >
                 Admin Dashboard
               </Button>
+
               <Button
                 as={RouterLink}
                 to="/admin/users"
-                colorScheme="whiteAlpha"
+                color={textColor}
                 variant="ghost"
+                _hover={{ bg: hoverBg }}
               >
                 Users
               </Button>
             </>
           )}
 
-          {/* LOGOUT */}
+          {/* 🔘 SWITCH DARK MODE */}
+          <IconButton
+            aria-label="Toggle Dark Mode"
+            icon={colorMode === "light" ? <MoonIcon /> : <SunIcon />}
+            onClick={toggleColorMode}
+            variant="ghost"
+            color={textColor}
+            _hover={{ bg: hoverBg }}
+          />
+
+          {/* 🚪 LOGOUT */}
           <Button
-            colorScheme="whiteAlpha"
             variant="outline"
+            color={textColor}
+            borderColor={textColor}
             onClick={handleLogout}
+            _hover={{ bg: hoverBg }}
           >
             Logout
           </Button>
         </HStack>
 
-        {/* BUTON MOBIL */}
+        {/* MENU MOBILE BUTTON */}
         <IconButton
           size={"md"}
           icon={isOpen ? <CloseIcon /> : <HamburgerIcon />}
           aria-label={"Open Menu"}
           display={{ md: "none" }}
           onClick={isOpen ? onClose : onOpen}
-          color="white"
+          color={textColor}
           variant="ghost"
         />
       </Flex>
 
-      {/* MENIU MOBIL */}
+      {/* MENIU MOBILE */}
       {isOpen ? (
         <Box pb={4} display={{ md: "none" }}>
           <Stack as={"nav"} spacing={4}>
@@ -138,6 +166,11 @@ export default function Navbar() {
                 </Button>
               </>
             )}
+
+            {/* DARK MODE MOBILE */}
+            <Button onClick={toggleColorMode} variant="ghost">
+              {colorMode === "light" ? "Dark Mode" : "Light Mode"}
+            </Button>
 
             <Button colorScheme="red" onClick={handleLogout}>
               Logout
