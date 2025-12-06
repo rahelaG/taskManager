@@ -10,64 +10,43 @@ import {
   StatNumber,
   Spinner,
   useToast,
-  Text,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  Avatar,
   Badge,
-  VStack,
   HStack,
+  VStack,
+  Text,
+  Divider,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { api } from "../services/api";
 
-import { Bar, Pie } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  BarElement,
-  CategoryScale,
-  LinearScale,
-  Tooltip,
-  Legend,
-  ArcElement,
-} from "chart.js";
+import { Pie } from "react-chartjs-2";
+import { Chart as ChartJS, Tooltip, Legend, ArcElement } from "chart.js";
 
-// Chart.js register
-ChartJS.register(
-  BarElement,
-  CategoryScale,
-  LinearScale,
-  Tooltip,
-  Legend,
-  ArcElement
-);
+ChartJS.register(Tooltip, Legend, ArcElement);
 
-interface TopUser {
+// ------------------
+// Types
+// ------------------
+interface LatestUser {
+  id: number;
   nume: string;
+  utilizator: string;
   rol: string;
-  total: number;
-}
-
-interface RecentTask {
-  titlu: string;
-  status: string;
-  dataCreare: string;
 }
 
 interface DashboardStats {
   totalUsers: number;
-  totalTasks: number;
-  tasksTodo: number;
-  tasksInProgress: number;
-  tasksDone: number;
-
   usersRoleUser: number;
   usersRoleEditor: number;
   usersRoleAdmin: number;
-
-  priorityHigh: number;
-  priorityMedium: number;
-  priorityLow: number;
-
-  topUsers: TopUser[];
-  recentTasks: RecentTask[];
+  latestUsers: LatestUser[];
 }
 
 export default function AdminDashboardPage() {
@@ -81,9 +60,10 @@ export default function AdminDashboardPage() {
       setStats(response.data);
     } catch (err) {
       toast({
-        title: "Eroare la încărcarea dashboard-ului",
+        title: "Error loading admin dashboard",
+        description: "Please try again or contact an administrator.",
         status: "error",
-        duration: 3000,
+        duration: 4000,
       });
     } finally {
       setLoading(false);
@@ -102,33 +82,11 @@ export default function AdminDashboardPage() {
     );
   }
 
-  // ------------------------------
-  // GRAPHS
-  // ------------------------------
-  const taskStatusChart = {
-    labels: ["TODO", "IN PROGRESS", "DONE"],
-    datasets: [
-      {
-        label: "Tasks",
-        data: [stats.tasksTodo, stats.tasksInProgress, stats.tasksDone],
-        backgroundColor: ["#3182CE", "#D69E2E", "#38A169"],
-        borderRadius: 6,
-      },
-    ],
-  };
-
-  const priorityChart = {
-    labels: ["HIGH", "MEDIUM", "LOW"],
-    datasets: [
-      {
-        data: [stats.priorityHigh, stats.priorityMedium, stats.priorityLow],
-        backgroundColor: ["#E53E3E", "#DD6B20", "#718096"],
-      },
-    ],
-  };
-
+  // ------------------
+  // Charts config
+  // ------------------
   const roleChart = {
-    labels: ["USER", "EDITOR", "ADMIN"],
+    labels: ["ROLE_USER", "ROLE_EDITOR", "ROLE_ADMIN"],
     datasets: [
       {
         data: [
@@ -136,152 +94,223 @@ export default function AdminDashboardPage() {
           stats.usersRoleEditor,
           stats.usersRoleAdmin,
         ],
-        backgroundColor: ["#4299E1", "#9F7AEA", "#ED8936"],
+        backgroundColor: ["#3182CE", "#805AD5", "#ED8936"],
+        borderWidth: 1,
       },
     ],
   };
 
+  const totalRoles =
+    stats.usersRoleUser + stats.usersRoleEditor + stats.usersRoleAdmin;
+
+  const formatRoleLabel = (rol: string) => {
+    switch (rol) {
+      case "ROLE_ADMIN":
+        return "Admin";
+      case "ROLE_EDITOR":
+        return "Editor";
+      case "ROLE_USER":
+      default:
+        return "User";
+    }
+  };
+
+  const roleColor = (rol: string) => {
+    switch (rol) {
+      case "ROLE_ADMIN":
+        return "orange";
+      case "ROLE_EDITOR":
+        return "purple";
+      case "ROLE_USER":
+      default:
+        return "blue";
+    }
+  };
+
   return (
-    <Box p={8}>
-      <Heading mb={6}>Admin Dashboard</Heading>
+    <Box p={{ base: 4, md: 8 }}>
+      <HStack
+        justify="space-between"
+        align="center"
+        mb={8}
+        flexWrap="wrap"
+        gap={4}
+      >
+        <Box>
+          <Heading size="lg">Admin Dashboard</Heading>
+          <Text mt={1} color="gray.500" fontSize="sm">
+            Overview of users and roles in the system
+          </Text>
+        </Box>
+      </HStack>
 
-      {/* ---------------------------------- */}
-      {/* TOP STATS CARDS */}
-      {/* ---------------------------------- */}
-      <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={6} mb={10}>
-        <Card bg="blue.500" color="white">
+      {/* TOP SUMMARY CARDS */}
+      <SimpleGrid columns={{ base: 1, md: 4 }} spacing={6} mb={10}>
+        <Card bg="blue.600" color="white" shadow="lg" borderRadius="2xl">
           <CardBody>
             <Stat>
-              <StatLabel>Total Users</StatLabel>
-              <StatNumber>{stats.totalUsers}</StatNumber>
+              <StatLabel fontSize="sm" color="blue.100">
+                Total Users
+              </StatLabel>
+              <StatNumber fontSize="2xl">{stats.totalUsers}</StatNumber>
             </Stat>
           </CardBody>
         </Card>
 
-        <Card bg="purple.500" color="white">
+        <Card bg="blue.500" color="white" shadow="lg" borderRadius="2xl">
           <CardBody>
             <Stat>
-              <StatLabel>Total Tasks</StatLabel>
-              <StatNumber>{stats.totalTasks}</StatNumber>
+              <StatLabel fontSize="sm" color="blue.100">
+                ROLE_USER
+              </StatLabel>
+              <StatNumber fontSize="xl">{stats.usersRoleUser}</StatNumber>
             </Stat>
           </CardBody>
         </Card>
 
-        <Card bg="yellow.500" color="white">
+        <Card bg="purple.500" color="white" shadow="lg" borderRadius="2xl">
           <CardBody>
             <Stat>
-              <StatLabel>Tasks In Progress</StatLabel>
-              <StatNumber>{stats.tasksInProgress}</StatNumber>
+              <StatLabel fontSize="sm" color="purple.100">
+                ROLE_EDITOR
+              </StatLabel>
+              <StatNumber fontSize="xl">{stats.usersRoleEditor}</StatNumber>
             </Stat>
           </CardBody>
         </Card>
 
-        <Card bg="green.500" color="white">
+        <Card bg="orange.400" color="white" shadow="lg" borderRadius="2xl">
           <CardBody>
             <Stat>
-              <StatLabel>Tasks Done</StatLabel>
-              <StatNumber>{stats.tasksDone}</StatNumber>
+              <StatLabel fontSize="sm" color="orange.100">
+                ROLE_ADMIN
+              </StatLabel>
+              <StatNumber fontSize="xl">{stats.usersRoleAdmin}</StatNumber>
             </Stat>
           </CardBody>
         </Card>
       </SimpleGrid>
 
-      {/* ---------------------------------- */}
-      {/* CHARTS SECTION */}
-      {/* ---------------------------------- */}
-      <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6} mb={12}>
-        {/* STATUS BAR CHART */}
-        <Card>
-          <CardBody>
-            <Heading size="md" mb={4}>
-              Task Status
-            </Heading>
-            <Bar data={taskStatusChart} />
-          </CardBody>
-        </Card>
-
-        {/* PRIORITY PIE */}
-        <Card>
-          <CardBody>
-            <Heading size="md" mb={4}>
-              Tasks by Priority
-            </Heading>
-            <Pie data={priorityChart} />
-          </CardBody>
-        </Card>
-
-        {/* ROLE PIE */}
-        <Card>
+      {/* MAIN CONTENT AREA */}
+      <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={8}>
+        {/* USERS BY ROLE CHART + NUMBERS */}
+        <Card shadow="md" borderRadius="2xl">
           <CardBody>
             <Heading size="md" mb={4}>
               Users by Role
             </Heading>
-            <Pie data={roleChart} />
+            <Flex
+              direction={{ base: "column", md: "row" }}
+              align="center"
+              gap={6}
+            >
+              <Box flex="1">
+                <Pie data={roleChart} />
+              </Box>
+
+              <Box flex="1">
+                <Text fontSize="sm" mb={2} color="gray.600">
+                  Distribution of users across roles
+                </Text>
+                <Divider mb={3} />
+                <VStack align="stretch" spacing={2}>
+                  <HStack justify="space-between">
+                    <Text>ROLE_USER</Text>
+                    <Text fontWeight="semibold">
+                      {stats.usersRoleUser}{" "}
+                      <Text as="span" fontSize="xs" color="gray.500">
+                        (
+                        {totalRoles > 0
+                          ? Math.round((stats.usersRoleUser / totalRoles) * 100)
+                          : 0}
+                        %)
+                      </Text>
+                    </Text>
+                  </HStack>
+                  <HStack justify="space-between">
+                    <Text>ROLE_EDITOR</Text>
+                    <Text fontWeight="semibold">
+                      {stats.usersRoleEditor}{" "}
+                      <Text as="span" fontSize="xs" color="gray.500">
+                        (
+                        {totalRoles > 0
+                          ? Math.round(
+                              (stats.usersRoleEditor / totalRoles) * 100
+                            )
+                          : 0}
+                        %)
+                      </Text>
+                    </Text>
+                  </HStack>
+                  <HStack justify="space-between">
+                    <Text>ROLE_ADMIN</Text>
+                    <Text fontWeight="semibold">
+                      {stats.usersRoleAdmin}{" "}
+                      <Text as="span" fontSize="xs" color="gray.500">
+                        (
+                        {totalRoles > 0
+                          ? Math.round(
+                              (stats.usersRoleAdmin / totalRoles) * 100
+                            )
+                          : 0}
+                        %)
+                      </Text>
+                    </Text>
+                  </HStack>
+                </VStack>
+              </Box>
+            </Flex>
+          </CardBody>
+        </Card>
+
+        {/* LATEST USERS TABLE */}
+        <Card shadow="md" borderRadius="2xl">
+          <CardBody>
+            <Heading size="md" mb={4}>
+              Latest Users
+            </Heading>
+            {stats.latestUsers.length === 0 ? (
+              <Text color="gray.500">No users available.</Text>
+            ) : (
+              <Table variant="simple" size="sm">
+                <Thead>
+                  <Tr>
+                    <Th>Name</Th>
+                    <Th>Username</Th>
+                    <Th>Role</Th>
+                  </Tr>
+                </Thead>
+                <Tbody>
+                  {stats.latestUsers.map((user) => (
+                    <Tr key={user.id}>
+                      <Td>
+                        <HStack spacing={3}>
+                          <Avatar size="sm" name={user.nume} />
+                          <Box>
+                            <Text fontWeight="medium">{user.nume}</Text>
+                            <Text fontSize="xs" color="gray.500">
+                              ID: {user.id}
+                            </Text>
+                          </Box>
+                        </HStack>
+                      </Td>
+                      <Td>{user.utilizator}</Td>
+                      <Td>
+                        <Badge
+                          colorScheme={roleColor(user.rol)}
+                          variant="subtle"
+                        >
+                          {formatRoleLabel(user.rol)}
+                        </Badge>
+                      </Td>
+                    </Tr>
+                  ))}
+                </Tbody>
+              </Table>
+            )}
           </CardBody>
         </Card>
       </SimpleGrid>
-
-      {/* ---------------------------------- */}
-      {/* TOP USERS */}
-      {/* ---------------------------------- */}
-      <Heading size="lg" mb={4}>
-        Top 5 Users – Most Assigned Tasks
-      </Heading>
-
-      <Card mb={12}>
-        <CardBody>
-          {stats.topUsers.length === 0 ? (
-            <Text>No assigned tasks yet.</Text>
-          ) : (
-            <VStack align="stretch" spacing={4}>
-              {stats.topUsers.map((u, idx) => (
-                <HStack
-                  key={idx}
-                  justify="space-between"
-                  p={3}
-                  borderBottom="1px solid #eee"
-                >
-                  <Box>
-                    <Text fontWeight="bold">{u.nume}</Text>
-                    <Badge colorScheme="purple">{u.rol}</Badge>
-                  </Box>
-                  <Stat>
-                    <StatLabel>Tasks</StatLabel>
-                    <StatNumber>{u.total}</StatNumber>
-                  </Stat>
-                </HStack>
-              ))}
-            </VStack>
-          )}
-        </CardBody>
-      </Card>
-
-      {/* ---------------------------------- */}
-      {/* RECENT TASKS */}
-      {/* ---------------------------------- */}
-      <Heading size="lg" mb={4}>
-        Recent Tasks Created
-      </Heading>
-
-      <Card>
-        <CardBody>
-          {stats.recentTasks.length === 0 ? (
-            <Text>No recent tasks.</Text>
-          ) : (
-            <VStack align="stretch" spacing={4}>
-              {stats.recentTasks.map((t, idx) => (
-                <Box key={idx} p={3} borderBottom="1px solid #eee">
-                  <Text fontWeight="bold">{t.titlu}</Text>
-                  <Badge mt={1} colorScheme="blue">
-                    {t.status}
-                  </Badge>
-                  <Text fontSize="sm">Created: {t.dataCreare}</Text>
-                </Box>
-              ))}
-            </VStack>
-          )}
-        </CardBody>
-      </Card>
     </Box>
   );
 }

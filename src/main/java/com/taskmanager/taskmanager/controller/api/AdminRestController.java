@@ -113,92 +113,38 @@ public class AdminRestController {
     @GetMapping("/dashboard")
     public ResponseEntity<AdminDashboardResponse> getDashboardStats() {
 
+        List<User> users = userService.findAllUsers();
         AdminDashboardResponse response = new AdminDashboardResponse();
 
-        // luăm toate datele o singură dată
-        List<User> users = userService.findAllUsers();
-        List<Task> tasks = taskService.findAll();
-
-        // totaluri simple
+        // total users
         response.setTotalUsers(users.size());
-        response.setTotalTasks(tasks.size());
-        response.setTasksTodo(taskService.countByStatus("TODO"));
-        response.setTasksInProgress(taskService.countByStatus("IN_PROGRESS"));
-        response.setTasksDone(taskService.countByStatus("DONE"));
 
-        // --- USERS BY ROLE ---
-        int roleUser = (int) users.stream()
-                .filter(u -> "ROLE_USER".equals(u.getRol()))
-                .count();
+        // count by role
+        response.setUsersRoleUser((int) users.stream().filter(u -> "ROLE_USER".equals(u.getRol())).count());
+        response.setUsersRoleEditor((int) users.stream().filter(u -> "ROLE_EDITOR".equals(u.getRol())).count());
+        response.setUsersRoleAdmin((int) users.stream().filter(u -> "ROLE_ADMIN".equals(u.getRol())).count());
 
-        int roleEditor = (int) users.stream()
-                .filter(u -> "ROLE_EDITOR".equals(u.getRol()))
-                .count();
+        // last 5 users by ID desc (fără dată înregistrare)
+        List<AdminDashboardResponse.LatestUser> latest =
+                users.stream()
+                        .sorted((a, b) -> b.getId().compareTo(a.getId()))
+                        .limit(5)
+                        .map(u -> {
+                            AdminDashboardResponse.LatestUser dto = new AdminDashboardResponse.LatestUser();
+                            dto.setId(u.getId());
+                            dto.setNume(u.getNume());
+                            dto.setUtilizator(u.getUtilizator());
+                            dto.setRol(u.getRol());
+                            return dto;
+                        })
+                        .toList();
 
-        int roleAdmin = (int) users.stream()
-                .filter(u -> "ROLE_ADMIN".equals(u.getRol()))
-                .count();
-
-        response.setUsersRoleUser(roleUser);
-        response.setUsersRoleEditor(roleEditor);
-        response.setUsersRoleAdmin(roleAdmin);
-
-        // --- TASKS BY PRIORITY ---
-        response.setPriorityHigh(taskService.countByPriority("HIGH"));
-        response.setPriorityMedium(taskService.countByPriority("MEDIUM"));
-        response.setPriorityLow(taskService.countByPriority("LOW"));
-
-        // --- TOP USERS (după număr de taskuri asignate) ---
-        Map<Long, Long> countsByUser = tasks.stream()
-                .filter(t -> t.getIdCreator() != null)
-                .collect(java.util.stream.Collectors.groupingBy(
-                        Task::getIdCreator,
-                        java.util.stream.Collectors.counting()
-                ));
-
-        List<AdminDashboardResponse.TopUser> topUsers = countsByUser.entrySet().stream()
-                .sorted((e1, e2) -> Long.compare(e2.getValue(), e1.getValue()))
-                .limit(5)
-                .map(entry -> {
-                    User u = userService.findById(entry.getKey());
-                    AdminDashboardResponse.TopUser dto = new AdminDashboardResponse.TopUser();
-                    if (u != null) {
-                        dto.setNume(u.getNume());
-                        dto.setRol(u.getRol());
-                    } else {
-                        dto.setNume("Unknown");
-                        dto.setRol("");
-                    }
-                    dto.setTotal(entry.getValue());
-                    return dto;
-                })
-                .toList();
-
-        response.setTopUsers(topUsers);
-
-        // --- RECENT TASKS ---
-        List<AdminDashboardResponse.RecentTask> recentTasks = tasks.stream()
-                .sorted(java.util.Comparator.comparing(
-                        Task::getDataCreare,
-                        java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder())
-                ).reversed())
-                .limit(5)
-                .map(t -> {
-                    AdminDashboardResponse.RecentTask dto = new AdminDashboardResponse.RecentTask();
-                    dto.setTitlu(t.getTitlu());
-                    dto.setStatus(t.getStatus());
-                    dto.setDataCreare(
-                            t.getDataCreare() != null
-                                    ? t.getDataCreare().toString()
-                                    : ""
-                    );
-                    return dto;
-                })
-                .toList();
-
-        response.setRecentTasks(recentTasks);
+        response.setLatestUsers(latest);
 
         return ResponseEntity.ok(response);
-    }
+    
+
+}
+
 
 }
