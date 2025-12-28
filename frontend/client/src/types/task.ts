@@ -7,7 +7,9 @@ export interface Task {
   categorie: string;
   dataCreare: string;
   dataLimita: string;
+  idCreator: number;
 }
+
 
 export interface TaskFilters {
   status: string;
