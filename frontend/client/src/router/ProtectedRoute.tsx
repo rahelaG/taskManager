@@ -20,7 +20,7 @@ export default function ProtectedRoute({
 }: ProtectedRouteProps) {
   const { user, loading } = useAuth();
 
-  // 1️⃣ Dacă încă verificăm login → afișăm spinner
+  //  Dacă încă verificăm login → afișăm spinner
   if (loading) {
     return (
       <Center h="100vh">
@@ -29,21 +29,21 @@ export default function ProtectedRoute({
     );
   }
 
-  // 2️⃣ Dacă nu există user → redirect la login
+  //  Dacă nu există user → redirect la login
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  // 3️⃣ Dacă există restricții și rolul nu e permis
+  //  Dacă există restricții și rolul nu e permis
   if (allowedRoles && !allowedRoles.includes(user.rol)) {
     // redirectăm userul la pagina rolului REAL
-    if (user.rol === "ROLE_ADMIN")
-      return <Navigate to="/admin/dashboard" replace />;
+    //if (user.rol === "ROLE_ADMIN")
+    //return <Navigate to="/admin/dashboard" replace />;
     if (user.rol === "ROLE_EDITOR")
       return <Navigate to="/editor/tasks" replace />;
     return <Navigate to="/tasks" replace />; // ROLE_USER
   }
 
-  // 4️⃣ Dacă totul e OK → afișăm pagina cerută
+  //  Dacă totul e OK → afișăm pagina cerută
   return <>{children}</>;
 }

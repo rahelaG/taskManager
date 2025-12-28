@@ -39,7 +39,11 @@ export default function UsersByRoleChart({ stats }: { stats: DashboardStats }) {
 
         <Flex direction={{ base: "column", md: "row" }} gap={6}>
           <Box flex="1">
-            <Pie data={chartData} />
+            <Pie
+              key="users-by-role"
+              data={chartData}
+              options={{ responsive: true }}
+            />
           </Box>
 
           <Box flex="1">

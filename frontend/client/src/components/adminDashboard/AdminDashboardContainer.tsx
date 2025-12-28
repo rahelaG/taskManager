@@ -7,10 +7,22 @@ import LatestUsersTable from "./LatestUsersTable";
 export default function AdminDashboardContainer() {
   const { stats, loading } = useAdminDashboard();
 
-  if (loading || !stats) {
+  console.log("AdminDashboard render", { loading, stats });
+
+  if (loading) {
     return (
       <Flex align="center" justify="center" height="70vh">
         <Spinner size="xl" />
+      </Flex>
+    );
+  }
+
+  if (!stats) {
+    return (
+      <Flex align="center" justify="center" height="70vh">
+        <Box>
+          <Text color="red.500">Dashboard data not available</Text>
+        </Box>
       </Flex>
     );
   }
