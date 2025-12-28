@@ -142,7 +142,7 @@ public class AdminRestController {
         response.setLatestUsers(latest);
 
         return ResponseEntity.ok(response);
-    
+
 
 }
 
