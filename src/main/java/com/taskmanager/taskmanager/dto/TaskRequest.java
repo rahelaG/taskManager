@@ -1,6 +1,7 @@
 package com.taskmanager.taskmanager.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
@@ -27,4 +28,8 @@ public class TaskRequest {
     private String categorie;
 
     private Long idCreator;
+
+    @NotNull(message = "Project ID is required")
+    private Long projectId;
+
 }

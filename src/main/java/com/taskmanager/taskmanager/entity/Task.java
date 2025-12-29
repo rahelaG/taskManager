@@ -40,4 +40,8 @@ public class Task {
 
     @Column(name = "id_creator")
     private Long idCreator;
+
+    @Column(name = "project_id", nullable = false)
+    private Long projectId;
+
 }

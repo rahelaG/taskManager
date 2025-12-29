@@ -45,8 +45,13 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public Task save(Task task) {
+
+        if (task.getProjectId() == null) {
+            throw new RuntimeException("Task must belong to a project");
+        }
         return taskRepository.save(task);
     }
+
 
     @Override
     public Task update(Task task) {

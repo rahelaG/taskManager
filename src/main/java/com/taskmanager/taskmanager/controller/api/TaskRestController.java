@@ -82,6 +82,7 @@ public class TaskRestController {
         task.setPrioritate(dto.getPrioritate());
         task.setCategorie(dto.getCategorie());
         task.setIdCreator(dto.getIdCreator());
+        task.setProjectId(dto.getProjectId());
 
         task.setDataCreare(LocalDate.now());
 
