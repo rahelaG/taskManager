@@ -1,5 +1,6 @@
 package com.taskmanager.taskmanager.service.impl;
 
+import com.taskmanager.taskmanager.entity.ProjectStatus;
 import com.taskmanager.taskmanager.entity.Task;
 import com.taskmanager.taskmanager.entity.User;
 import com.taskmanager.taskmanager.exception.ForbiddenException;
@@ -53,7 +54,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     // =========================
-    // EDITOR / ADMIN
+    // EDITOR ONLY (ADMIN INTERZIS)
     // =========================
     @Override
     public List<Task> getEditorTasks(
@@ -65,23 +66,14 @@ public class TaskServiceImpl implements TaskService {
     ) {
         User user = userService.findByUsername(username);
 
+        if ("ROLE_ADMIN".equals(user.getRol())) {
+            throw new ForbiddenException("Admins are not allowed to access tasks");
+        }
+
         status = normalize(status);
         prioritate = normalize(prioritate);
         categorie = normalize(categorie);
 
-        // =========================
-        // ADMIN → VEDE TOT
-        // =========================
-        if ("ROLE_ADMIN".equals(user.getRol())) {
-            if (projectId != null) {
-                return taskRepository.findByProjectId(projectId);
-            }
-            return taskRepository.findAll();
-        }
-
-        // =========================
-        // EDITOR → DOAR PROIECTELE LUI
-        // =========================
         List<Long> editorProjectIds =
                 projectService.findProjectIdsForEditor(user.getId());
 

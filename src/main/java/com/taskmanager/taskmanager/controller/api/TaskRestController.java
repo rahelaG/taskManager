@@ -3,6 +3,7 @@ package com.taskmanager.taskmanager.controller.api;
 import com.taskmanager.taskmanager.dto.ProjectResponse;
 import com.taskmanager.taskmanager.dto.TaskRequest;
 import com.taskmanager.taskmanager.dto.TaskResponse;
+import com.taskmanager.taskmanager.entity.ProjectStatus;
 import com.taskmanager.taskmanager.entity.Task;
 import com.taskmanager.taskmanager.entity.User;
 import com.taskmanager.taskmanager.exception.ForbiddenException;
@@ -54,7 +55,7 @@ public class TaskRestController {
     }
 
     // =========================
-    // EDITOR – task-uri (per proiect)
+    // EDITOR – task-uri (ADMIN INTERZIS)
     // =========================
     @GetMapping("/editor/tasks")
     public List<TaskResponse> getEditorTasks(
@@ -64,6 +65,12 @@ public class TaskRestController {
             @RequestParam(required = false) Long projectId,
             Authentication authentication
     ) {
+        User editor = userService.findByUsername(authentication.getName());
+
+        if ("ROLE_ADMIN".equals(editor.getRol())) {
+            throw new ForbiddenException("Admins are not allowed to access tasks");
+        }
+
         return taskService
                 .getEditorTasks(
                         status,
@@ -78,7 +85,7 @@ public class TaskRestController {
     }
 
     // =========================
-    // CREATE TASK
+    // CREATE TASK (EDITOR ONLY + PROJECT ACTIVE)
     // =========================
     @PostMapping("/editor/tasks")
     public TaskResponse createTask(
@@ -86,6 +93,10 @@ public class TaskRestController {
             Authentication authentication
     ) {
         User editor = userService.findByUsername(authentication.getName());
+
+        if ("ROLE_ADMIN".equals(editor.getRol())) {
+            throw new ForbiddenException("Admins cannot create tasks");
+        }
 
         ProjectResponse project = projectService.getProjectById(
                 dto.getProjectId(),
@@ -95,6 +106,10 @@ public class TaskRestController {
 
         if (project == null) {
             throw new ForbiddenException("You are not allowed to add tasks to this project");
+        }
+
+        if (ProjectStatus.ARCHIVED.name().equals(project.getStatus())) {
+            throw new ForbiddenException("Cannot add tasks to an archived project");
         }
 
         Task task = new Task();
@@ -111,8 +126,8 @@ public class TaskRestController {
     }
 
     // =========================
-// EDITOR – GET TASK BY ID
-// =========================
+    // EDITOR – GET TASK BY ID
+    // =========================
     @GetMapping("/editor/tasks/{id}")
     public ResponseEntity<TaskResponse> getEditorTaskById(
             @PathVariable Long id,
@@ -139,8 +154,8 @@ public class TaskRestController {
     }
 
     // =========================
-// EDITOR – UPDATE TASK
-// =========================
+    // EDITOR – UPDATE TASK (PROJECT ACTIVE)
+    // =========================
     @PutMapping("/editor/tasks/{id}")
     public TaskResponse updateTask(
             @PathVariable Long id,
@@ -154,7 +169,6 @@ public class TaskRestController {
 
         User editor = userService.findByUsername(authentication.getName());
 
-        // verificăm acces la proiect
         ProjectResponse project = projectService.getProjectById(
                 existing.getProjectId(),
                 editor.getId(),
@@ -165,7 +179,10 @@ public class TaskRestController {
             throw new ForbiddenException("You are not allowed to edit this task");
         }
 
-        // update câmpuri
+        if (ProjectStatus.ARCHIVED.name().equals(project.getStatus())) {
+            throw new ForbiddenException("Cannot modify tasks in an archived project");
+        }
+
         existing.setTitlu(dto.getTitlu());
         existing.setDescriere(dto.getDescriere());
         existing.setStatus(dto.getStatus());
@@ -177,44 +194,8 @@ public class TaskRestController {
     }
 
     // =========================
-// EDITOR – ASSIGN TASK
-// =========================
-    @PostMapping("/editor/tasks/{id}/assign")
-    public TaskResponse assignTask(
-            @PathVariable Long id,
-            @RequestParam Long userId,
-            Authentication authentication
-    ) {
-        Task task = taskService.findById(id);
-        if (task == null) {
-            throw new RuntimeException("Task not found");
-        }
-
-        User editor = userService.findByUsername(authentication.getName());
-
-        // verificăm accesul editorului la proiect
-        ProjectResponse project = projectService.getProjectById(
-                task.getProjectId(),
-                editor.getId(),
-                editor.getRol()
-        );
-
-        if (project == null) {
-            throw new ForbiddenException("You are not allowed to assign this task");
-        }
-
-        // verificăm că user-ul există
-        User user = userService.findById(userId);
-        if (user == null || !"ROLE_USER".equals(user.getRol())) {
-            throw new RuntimeException("Invalid user");
-        }
-
-        task.setIdCreator(userId);
-        return TaskMapper.toResponse(taskService.update(task));
-    }
+    // EDITOR – DELETE TASK (PROJECT ACTIVE)
     // =========================
-// EDITOR – DELETE TASK
-// =========================
     @DeleteMapping("/editor/tasks/{id}")
     public void deleteTask(
             @PathVariable Long id,
@@ -227,7 +208,6 @@ public class TaskRestController {
 
         User editor = userService.findByUsername(authentication.getName());
 
-        // verificăm accesul editorului la proiect
         ProjectResponse project = projectService.getProjectById(
                 task.getProjectId(),
                 editor.getId(),
@@ -238,8 +218,10 @@ public class TaskRestController {
             throw new ForbiddenException("You are not allowed to delete this task");
         }
 
+        if (ProjectStatus.ARCHIVED.name().equals(project.getStatus())) {
+            throw new ForbiddenException("Cannot delete tasks from an archived project");
+        }
+
         taskService.delete(id);
     }
-
-
 }
