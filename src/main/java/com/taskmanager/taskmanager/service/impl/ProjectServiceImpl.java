@@ -3,6 +3,7 @@ package com.taskmanager.taskmanager.service.impl;
 import com.taskmanager.taskmanager.dto.ProjectRequest;
 import com.taskmanager.taskmanager.dto.ProjectResponse;
 import com.taskmanager.taskmanager.entity.Project;
+import com.taskmanager.taskmanager.mapper.ProjectMapper;
 import com.taskmanager.taskmanager.repository.ProjectRepository;
 import com.taskmanager.taskmanager.service.ProjectService;
 import org.springframework.stereotype.Service;
@@ -36,17 +37,23 @@ public class ProjectServiceImpl implements ProjectService {
         }
 
         Project saved = projectRepository.save(project);
-        return toResponse(saved);
+        return ProjectMapper.toResponse(saved);
     }
 
     @Override
     public List<ProjectResponse> findAllProjects() {
-        return projectRepository.findAll().stream().map(this::toResponse).toList();
+        return projectRepository.findAll()
+                .stream()
+                .map(ProjectMapper::toResponse)
+                .toList();
     }
 
     @Override
     public List<ProjectResponse> findProjectsForEditor(Long editorId) {
-        return projectRepository.findByEditorId(editorId).stream().map(this::toResponse).toList();
+        return projectRepository.findByEditorId(editorId)
+                .stream()
+                .map(ProjectMapper::toResponse)
+                .toList();
     }
 
     @Override
@@ -60,17 +67,6 @@ public class ProjectServiceImpl implements ProjectService {
             project = projectRepository.findByIdAndEditorId(projectId, editorId).orElse(null);
         }
 
-        return project == null ? null : toResponse(project);
-    }
-
-    private ProjectResponse toResponse(Project p) {
-        ProjectResponse dto = new ProjectResponse();
-        dto.setId(p.getId());
-        dto.setNume(p.getNume());
-        dto.setDescriere(p.getDescriere());
-        dto.setStatus(p.getStatus());
-        dto.setDataCreare(p.getDataCreare());
-        dto.setEditorId(p.getEditorId());
-        return dto;
+        return project == null ? null : ProjectMapper.toResponse(project);
     }
 }

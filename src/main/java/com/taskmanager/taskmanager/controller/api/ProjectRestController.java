@@ -38,8 +38,7 @@ public class ProjectRestController {
             throw new ForbiddenException("Only admins can create projects");
         }
 
-        ProjectResponse saved = projectService.createProject(request);
-        return ResponseEntity.ok(saved);
+        return ResponseEntity.ok(projectService.createProject(request));
     }
 
     // ADMIN – vede toate proiectele
@@ -59,7 +58,7 @@ public class ProjectRestController {
             return ResponseEntity.ok(projectService.findProjectsForEditor(user.getId()));
         }
 
-        throw new ForbiddenException("Only admins can create projects");
+        throw new ForbiddenException("Only admins and editors can view projects");
     }
 
     // ADMIN / EDITOR – detalii proiect

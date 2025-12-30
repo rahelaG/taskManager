@@ -2,9 +2,11 @@ package com.taskmanager.taskmanager.controller.api;
 
 import com.taskmanager.taskmanager.dto.ProjectResponse;
 import com.taskmanager.taskmanager.dto.TaskRequest;
+import com.taskmanager.taskmanager.dto.TaskResponse;
 import com.taskmanager.taskmanager.entity.Task;
 import com.taskmanager.taskmanager.entity.User;
 import com.taskmanager.taskmanager.exception.ForbiddenException;
+import com.taskmanager.taskmanager.mapper.TaskMapper;
 import com.taskmanager.taskmanager.service.ProjectService;
 import com.taskmanager.taskmanager.service.TaskService;
 import com.taskmanager.taskmanager.service.UserService;
@@ -24,9 +26,11 @@ public class TaskRestController {
     private final ProjectService projectService;
     private final UserService userService;
 
-    public TaskRestController(TaskService taskService,
-                              ProjectService projectService,
-                              UserService userService) {
+    public TaskRestController(
+            TaskService taskService,
+            ProjectService projectService,
+            UserService userService
+    ) {
         this.taskService = taskService;
         this.projectService = projectService;
         this.userService = userService;
@@ -36,7 +40,7 @@ public class TaskRestController {
     // 1. TASK-URILE USERULUI
     // =========================
     @GetMapping("/tasks")
-    public List<Task> getUserTasks(
+    public List<TaskResponse> getUserTasks(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String prioritate,
             @RequestParam(required = false) String categorie,
@@ -45,34 +49,40 @@ public class TaskRestController {
         String username = authentication.getName();
 
         return taskService.filterTasks(
-                normalize(status),
-                normalize(prioritate),
-                normalize(categorie),
-                username
-        );
+                        normalize(status),
+                        normalize(prioritate),
+                        normalize(categorie),
+                        username
+                )
+                .stream()
+                .map(TaskMapper::toResponse)
+                .toList();
     }
 
     // =========================
     // 2. TASK-URILE EDITORULUI
     // =========================
     @GetMapping("/editor/tasks")
-    public List<Task> getEditorTasks(
+    public List<TaskResponse> getEditorTasks(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String prioritate,
             @RequestParam(required = false) String categorie
     ) {
         return taskService.filterTasksForEditor(
-                normalize(status),
-                normalize(prioritate),
-                normalize(categorie)
-        );
+                        normalize(status),
+                        normalize(prioritate),
+                        normalize(categorie)
+                )
+                .stream()
+                .map(TaskMapper::toResponse)
+                .toList();
     }
 
     // =========================
     // 3. GET TASK BY ID (CU VERIFICARE PROJECT)
     // =========================
     @GetMapping("/editor/tasks/{id}")
-    public ResponseEntity<Task> getTaskById(
+    public ResponseEntity<TaskResponse> getTaskById(
             @PathVariable Long id,
             Authentication authentication
     ) {
@@ -92,10 +102,9 @@ public class TaskRestController {
 
         if (project == null) {
             throw new ForbiddenException("You are not allowed to access this task");
-
         }
 
-        return ResponseEntity.ok(task);
+        return ResponseEntity.ok(TaskMapper.toResponse(task));
     }
 
     // =========================
@@ -111,14 +120,13 @@ public class TaskRestController {
     // 4. CREATE TASK
     // =========================
     @PostMapping("/editor/tasks")
-    public Task createTask(
+    public TaskResponse createTask(
             @Valid @RequestBody TaskRequest dto,
             Authentication authentication
     ) {
         String username = authentication.getName();
         User editor = userService.findByUsername(username);
 
-        // 🔒 verificam ca editorul gestioneaza project-ul
         ProjectResponse project = projectService.getProjectById(
                 dto.getProjectId(),
                 editor.getId(),
@@ -139,23 +147,27 @@ public class TaskRestController {
         task.setProjectId(dto.getProjectId());
         task.setDataCreare(LocalDate.now());
 
-        return taskService.save(task);
+        return TaskMapper.toResponse(taskService.save(task));
     }
 
     // =========================
     // 5. UPDATE TASK
     // =========================
     @PutMapping("/editor/tasks/{id}")
-    public Task updateTask(@PathVariable Long id, @RequestBody Task updatedTask) {
-
+    public TaskResponse updateTask(
+            @PathVariable Long id,
+            @RequestBody Task updatedTask
+    ) {
         Task existing = taskService.findById(id);
-        if (existing == null) return null;
+        if (existing == null) {
+            return null;
+        }
 
         updatedTask.setId(id);
         updatedTask.setDataCreare(existing.getDataCreare());
         updatedTask.setProjectId(existing.getProjectId());
 
-        return taskService.update(updatedTask);
+        return TaskMapper.toResponse(taskService.update(updatedTask));
     }
 
     // =========================
@@ -170,11 +182,16 @@ public class TaskRestController {
     // 7. ASSIGN TASK
     // =========================
     @PostMapping("/editor/tasks/{id}/assign")
-    public Task assignTask(@PathVariable Long id, @RequestParam Long userId) {
+    public TaskResponse assignTask(
+            @PathVariable Long id,
+            @RequestParam Long userId
+    ) {
         Task task = taskService.findById(id);
-        if (task == null) return null;
+        if (task == null) {
+            return null;
+        }
 
         task.setIdCreator(userId);
-        return taskService.update(task);
+        return TaskMapper.toResponse(taskService.update(task));
     }
 }
