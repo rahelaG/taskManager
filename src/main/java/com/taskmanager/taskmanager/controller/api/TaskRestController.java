@@ -1,7 +1,7 @@
 package com.taskmanager.taskmanager.controller.api;
 
+import com.taskmanager.taskmanager.dto.ProjectResponse;
 import com.taskmanager.taskmanager.dto.TaskRequest;
-import com.taskmanager.taskmanager.entity.Project;
 import com.taskmanager.taskmanager.entity.Task;
 import com.taskmanager.taskmanager.entity.User;
 import com.taskmanager.taskmanager.service.ProjectService;
@@ -83,7 +83,7 @@ public class TaskRestController {
         String username = authentication.getName();
         User editor = userService.findByUsername(username);
 
-        Project project = projectService.getProjectById(
+        ProjectResponse project = projectService.getProjectById(
                 task.getProjectId(),
                 editor.getId(),
                 editor.getRol()
@@ -117,7 +117,7 @@ public class TaskRestController {
         User editor = userService.findByUsername(username);
 
         // 🔒 verificam ca editorul gestioneaza project-ul
-        Project project = projectService.getProjectById(
+        ProjectResponse project = projectService.getProjectById(
                 dto.getProjectId(),
                 editor.getId(),
                 editor.getRol()

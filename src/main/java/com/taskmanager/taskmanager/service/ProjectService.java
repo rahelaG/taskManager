@@ -1,20 +1,21 @@
 package com.taskmanager.taskmanager.service;
 
-import com.taskmanager.taskmanager.entity.Project;
+import com.taskmanager.taskmanager.dto.ProjectRequest;
+import com.taskmanager.taskmanager.dto.ProjectResponse;
 
 import java.util.List;
 
 public interface ProjectService {
 
     // ADMIN: creeaza proiect si asigneaza editor
-    Project createProject(Project project);
+    ProjectResponse createProject(ProjectRequest request);
 
     // ADMIN: vede toate proiectele
-    List<Project> findAllProjects();
+    List<ProjectResponse> findAllProjects();
 
     // EDITOR: vede doar proiectele lui
-    List<Project> findProjectsForEditor(Long editorId);
+    List<ProjectResponse> findProjectsForEditor(Long editorId);
 
     // EDITOR / ADMIN: vede un proiect daca are acces
-    Project getProjectById(Long projectId, Long editorId, String role);
+    ProjectResponse getProjectById(Long projectId, Long editorId, String role);
 }

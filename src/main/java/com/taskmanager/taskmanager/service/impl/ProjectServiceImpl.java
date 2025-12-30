@@ -1,5 +1,7 @@
 package com.taskmanager.taskmanager.service.impl;
 
+import com.taskmanager.taskmanager.dto.ProjectRequest;
+import com.taskmanager.taskmanager.dto.ProjectResponse;
 import com.taskmanager.taskmanager.entity.Project;
 import com.taskmanager.taskmanager.repository.ProjectRepository;
 import com.taskmanager.taskmanager.service.ProjectService;
@@ -17,58 +19,58 @@ public class ProjectServiceImpl implements ProjectService {
         this.projectRepository = projectRepository;
     }
 
-    /**
-     * ADMIN creeaza proiectul
-     */
     @Override
-    public Project createProject(Project project) {
+    public ProjectResponse createProject(ProjectRequest request) {
 
-        // setari controlate din backend
+        Project project = new Project();
         project.setId(null);
+        project.setNume(request.getNume());
+        project.setDescriere(request.getDescriere());
+        project.setEditorId(request.getEditorId());
         project.setDataCreare(LocalDate.now());
 
-        if (project.getStatus() == null || project.getStatus().isBlank()) {
+        if (request.getStatus() == null || request.getStatus().isBlank()) {
             project.setStatus("ACTIVE");
+        } else {
+            project.setStatus(request.getStatus());
         }
 
-        return projectRepository.save(project);
+        Project saved = projectRepository.save(project);
+        return toResponse(saved);
     }
 
-    /**
-     * ADMIN vede toate proiectele
-     */
     @Override
-    public List<Project> findAllProjects() {
-        return projectRepository.findAll();
+    public List<ProjectResponse> findAllProjects() {
+        return projectRepository.findAll().stream().map(this::toResponse).toList();
     }
 
-    /**
-     * EDITOR vede doar proiectele asignate lui
-     */
     @Override
-    public List<Project> findProjectsForEditor(Long editorId) {
-        return projectRepository.findByEditorId(editorId);
+    public List<ProjectResponse> findProjectsForEditor(Long editorId) {
+        return projectRepository.findByEditorId(editorId).stream().map(this::toResponse).toList();
     }
 
-    /**
-     * EDITOR / ADMIN – acces controlat la proiect
-     */
     @Override
-    public Project getProjectById(Long projectId, Long editorId, String role) {
+    public ProjectResponse getProjectById(Long projectId, Long editorId, String role) {
 
-        // ADMIN are acces complet
+        Project project = null;
+
         if ("ROLE_ADMIN".equals(role)) {
-            return projectRepository.findById(projectId).orElse(null);
+            project = projectRepository.findById(projectId).orElse(null);
+        } else if ("ROLE_EDITOR".equals(role)) {
+            project = projectRepository.findByIdAndEditorId(projectId, editorId).orElse(null);
         }
 
-        // EDITOR are acces doar la proiectele lui
-        if ("ROLE_EDITOR".equals(role)) {
-            return projectRepository
-                    .findByIdAndEditorId(projectId, editorId)
-                    .orElse(null);
-        }
+        return project == null ? null : toResponse(project);
+    }
 
-        // USER – momentan fara acces direct (va veni prin Task-uri)
-        return null;
+    private ProjectResponse toResponse(Project p) {
+        ProjectResponse dto = new ProjectResponse();
+        dto.setId(p.getId());
+        dto.setNume(p.getNume());
+        dto.setDescriere(p.getDescriere());
+        dto.setStatus(p.getStatus());
+        dto.setDataCreare(p.getDataCreare());
+        dto.setEditorId(p.getEditorId());
+        return dto;
     }
 }
