@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { api } from "../services/api";
 import { useToast } from "@chakra-ui/react";
 import type { Task } from "../types/task";
-import { useProjectContext } from "../context/ProjectContext";
 
 interface User {
   id: number;
@@ -10,24 +9,16 @@ interface User {
   utilizator: string;
 }
 
-export function useEditorTasks() {
+export function useEditorTasks(projectId?: number) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const toast = useToast();
 
-  const { currentProject } = useProjectContext();
-
-  const userMap = Object.fromEntries(
-    users.map((u) => [u.id, `${u.nume} (${u.utilizator})`])
-  );
-
   const fetchTasks = async () => {
-    const url = currentProject
-      ? `/api/editor/tasks?projectId=${currentProject.id}`
-      : `/api/editor/tasks`;
-
-    const res = await api.get(url);
+    const res = await api.get("/api/editor/tasks", {
+      params: { projectId },
+    });
     setTasks(res.data);
   };
 
@@ -49,15 +40,21 @@ export function useEditorTasks() {
   };
 
   useEffect(() => {
-    setLoading(true);
+    if (!projectId) return;
 
+    setLoading(true);
     Promise.all([fetchTasks(), fetchUsers()])
       .catch(() =>
         toast({ title: "Error loading data", status: "error" })
       )
       .finally(() => setLoading(false));
-    // 🔥 refacem fetch dacă se schimbă proiectul selectat
-  }, [currentProject?.id]);
+  }, [projectId]);
+
+  // ✅ userMap CORECT
+  const userMap = users.reduce<Record<number, string>>((acc, u) => {
+    acc[u.id] = `${u.nume} (${u.utilizator})`;
+    return acc;
+  }, {});
 
   return {
     tasks,

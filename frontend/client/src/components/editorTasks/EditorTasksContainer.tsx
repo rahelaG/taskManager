@@ -1,12 +1,22 @@
 import { Box, Button, Flex, Heading, Spinner, Text } from "@chakra-ui/react";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useParams } from "react-router-dom";
 import { useEditorTasks } from "../../hooks/useEditorTasks";
 import EditorTaskList from "./EditorTaskList";
-import { useProjectContext } from "../../context/ProjectContext";
 
 export default function EditorTasksContainer() {
-  const { tasks, loading, userMap, deleteTask } = useEditorTasks();
-  const { currentProject } = useProjectContext();
+  const { projectId } = useParams<{ projectId: string }>();
+
+  const { tasks, loading, userMap, deleteTask } = useEditorTasks(
+    Number(projectId)
+  );
+
+  if (!projectId) {
+    return (
+      <Box p={8}>
+        <Text color="red.500">Project not specified</Text>
+      </Box>
+    );
+  }
 
   if (loading) {
     return (
@@ -19,20 +29,22 @@ export default function EditorTasksContainer() {
   return (
     <Box p={8}>
       <Flex justify="space-between" align="center" mb={6}>
-        <Heading>Editor – Tasks</Heading>
+        <Heading>Project Tasks</Heading>
 
-        <Button colorScheme="blue" as={RouterLink} to="/editor/tasks/create">
+        <Button
+          colorScheme="blue"
+          as={RouterLink}
+          to={`/editor/projects/${projectId}/tasks/create`}
+        >
           + Create Task
         </Button>
       </Flex>
 
-      {!currentProject ? (
-        <Text color="gray.600">
-          Select a project from the navbar to filter tasks.
-        </Text>
-      ) : null}
-
-      <EditorTaskList tasks={tasks} userMap={userMap} onDelete={deleteTask} />
+      {tasks.length === 0 ? (
+        <Text>No tasks found for this project.</Text>
+      ) : (
+        <EditorTaskList tasks={tasks} userMap={userMap} onDelete={deleteTask} />
+      )}
     </Box>
   );
 }
