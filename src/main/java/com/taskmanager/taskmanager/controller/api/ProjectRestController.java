@@ -79,4 +79,20 @@ public class ProjectRestController {
 
         return ResponseEntity.ok(project);
     }
+
+    @PutMapping("/{id}/status")
+    public ResponseEntity<ProjectResponse> updateProjectStatus(
+            @PathVariable Long id,
+            @RequestBody String status,
+            Authentication authentication
+    ) {
+        String role = authentication.getAuthorities().iterator().next().getAuthority();
+
+        if (!"ROLE_ADMIN".equals(role)) {
+            throw new ForbiddenException("Only admins can update project status");
+        }
+
+        return ResponseEntity.ok(projectService.updateProjectStatus(id, status));
+    }
+
 }

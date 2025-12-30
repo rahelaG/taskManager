@@ -3,6 +3,7 @@ package com.taskmanager.taskmanager.service.impl;
 import com.taskmanager.taskmanager.dto.ProjectRequest;
 import com.taskmanager.taskmanager.dto.ProjectResponse;
 import com.taskmanager.taskmanager.entity.Project;
+import com.taskmanager.taskmanager.entity.ProjectStatus;
 import com.taskmanager.taskmanager.mapper.ProjectMapper;
 import com.taskmanager.taskmanager.repository.ProjectRepository;
 import com.taskmanager.taskmanager.service.ProjectService;
@@ -30,11 +31,8 @@ public class ProjectServiceImpl implements ProjectService {
         project.setEditorId(request.getEditorId());
         project.setDataCreare(LocalDate.now());
 
-        if (request.getStatus() == null || request.getStatus().isBlank()) {
-            project.setStatus("ACTIVE");
-        } else {
-            project.setStatus(request.getStatus());
-        }
+        // 🔹 R4: status default + validare
+        project.setStatus(normalizeStatus(request.getStatus()));
 
         Project saved = projectRepository.save(project);
         return ProjectMapper.toResponse(saved);
@@ -61,7 +59,6 @@ public class ProjectServiceImpl implements ProjectService {
         return projectRepository.findProjectIdsByEditorId(editorId);
     }
 
-
     @Override
     public ProjectResponse getProjectById(Long projectId, Long editorId, String role) {
 
@@ -75,4 +72,27 @@ public class ProjectServiceImpl implements ProjectService {
 
         return project == null ? null : ProjectMapper.toResponse(project);
     }
+
+    // 🔹 R4 helper – status valid
+    private String normalizeStatus(String status) {
+        if (status == null || status.isBlank()) {
+            return ProjectStatus.ACTIVE.name();
+        }
+        return ProjectStatus.valueOf(status.trim().toUpperCase()).name();
+    }
+
+    @Override
+    public ProjectResponse updateProjectStatus(Long projectId, String status) {
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new IllegalArgumentException("Project not found"));
+
+        project.setStatus(
+                ProjectStatus.valueOf(status.trim().toUpperCase()).name()
+        );
+
+        Project saved = projectRepository.save(project);
+        return ProjectMapper.toResponse(saved);
+    }
+
 }

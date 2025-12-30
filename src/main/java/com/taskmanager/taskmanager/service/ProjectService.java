@@ -20,4 +20,7 @@ public interface ProjectService {
     ProjectResponse getProjectById(Long projectId, Long editorId, String role);
 
     List<Long> findProjectIdsForEditor(Long editorId);
+
+    // 🔹 R4: ADMIN – update status proiect
+    ProjectResponse updateProjectStatus(Long projectId, String status);
 }
