@@ -16,7 +16,7 @@ export default function LoginContainer() {
         navigate("/admin/dashboard", { replace: true });
         break;
       case "ROLE_EDITOR":
-        navigate("/editor/tasks", { replace: true });
+        navigate("/editor/projects", { replace: true });
         break;
       default:
         navigate("/tasks", { replace: true });

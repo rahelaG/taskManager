@@ -1,20 +1,20 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
 
-// ---- PUBLIC ----
+// ================= PUBLIC =================
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 
-// ---- USER ----
+// ================= USER =================
 import TasksPage from "../pages/TasksPage";
 
-// ---- EDITOR ----
+// ================= EDITOR =================
 import EditorProjectsPage from "../pages/EditorProjectsPage";
 import EditorTasksPage from "../pages/EditorTasksPage";
 import EditorTaskCreatePage from "../pages/EditorTaskCreatePage";
 import EditorTaskEditPage from "../pages/EditorTaskEditPage";
 
-// ---- ADMIN ----
+// ================= ADMIN =================
 import AdminDashboardPage from "../pages/AdminDashboardPage";
 import AdminUsersPage from "../pages/AdminUsersPage";
 import AdminUserCreatePage from "../pages/AdminUserCreatePage";
@@ -24,24 +24,22 @@ import ProjectsPage from "../pages/ProjectsPage";
 export default function AppRouter() {
   return (
     <Routes>
-      {/* ================= PUBLIC ================= */}
+      {/* ========== PUBLIC ========== */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
 
-      {/* ================= USER ================= */}
+      {/* ========== USER ========== */}
       <Route
         path="/tasks"
         element={
-          <ProtectedRoute
-            allowedRoles={["ROLE_USER", "ROLE_EDITOR", "ROLE_ADMIN"]}
-          >
+          <ProtectedRoute allowedRoles={["ROLE_USER"]}>
             <TasksPage />
           </ProtectedRoute>
         }
       />
 
-      {/* ================= EDITOR ================= */}
-      {/* 🔹 editor alege proiect */}
+      {/* ========== EDITOR ========== */}
+      {/* 🔹 landing page editor → alege proiect */}
       <Route
         path="/editor/projects"
         element={
@@ -51,7 +49,7 @@ export default function AppRouter() {
         }
       />
 
-      {/* 🔹 task-uri dintr-un proiect */}
+      {/* 🔹 task-urile unui proiect */}
       <Route
         path="/editor/projects/:projectId/tasks"
         element={
@@ -61,7 +59,7 @@ export default function AppRouter() {
         }
       />
 
-      {/* 🔹 create task */}
+      {/* 🔹 create task (projectId din URL) */}
       <Route
         path="/editor/projects/:projectId/tasks/create"
         element={
@@ -71,7 +69,7 @@ export default function AppRouter() {
         }
       />
 
-      {/* 🔹 edit task */}
+      {/* 🔹 edit task (projectId + taskId din URL) */}
       <Route
         path="/editor/projects/:projectId/tasks/:id/edit"
         element={
@@ -81,7 +79,7 @@ export default function AppRouter() {
         }
       />
 
-      {/* ================= ADMIN ================= */}
+      {/* ========== ADMIN ========== */}
       <Route
         path="/admin/dashboard"
         element={
@@ -127,10 +125,8 @@ export default function AppRouter() {
         }
       />
 
-      {/* ================= ROOT ================= */}
+      {/* ========== ROOT & 404 ========== */}
       <Route path="/" element={<Navigate to="/login" replace />} />
-
-      {/* ================= 404 ================= */}
       <Route path="*" element={<div>404 - Page Not Found</div>} />
     </Routes>
   );
