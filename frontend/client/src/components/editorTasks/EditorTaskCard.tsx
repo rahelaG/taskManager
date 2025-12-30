@@ -7,7 +7,7 @@ import {
   Heading,
   Text,
 } from "@chakra-ui/react";
-import { Link as RouterLink } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import type { Task } from "../../types/task";
 
 type Props = {
@@ -17,6 +17,8 @@ type Props = {
 };
 
 export default function EditorTaskCard({ task, assignedTo, onDelete }: Props) {
+  const navigate = useNavigate();
+
   return (
     <Card border="1px solid #e2e8f0">
       <CardBody>
@@ -67,10 +69,13 @@ export default function EditorTaskCard({ task, assignedTo, onDelete }: Props) {
 
         <Flex gap={2} mt={4}>
           <Button
-            as={RouterLink}
-            to={`/editor/tasks/${task.id}/edit`}
             colorScheme="yellow"
             size="sm"
+            onClick={() =>
+              navigate(
+                `/editor/projects/${task.projectId}/tasks/${task.id}/edit`
+              )
+            }
           >
             Edit
           </Button>

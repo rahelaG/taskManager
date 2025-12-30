@@ -8,42 +8,35 @@ interface ProtectedRouteProps {
   allowedRoles?: string[];
 }
 
-/**
- * ProtectedRoute verifică:
- *  → dacă userul este logat
- *  → dacă userul are rolul permis
- *  → altfel face redirect corect
- */
 export default function ProtectedRoute({
   children,
   allowedRoles,
 }: ProtectedRouteProps) {
   const { user, loading } = useAuth();
 
-  //  Dacă încă verificăm login → afișăm spinner
   if (loading) {
     return (
       <Center h="100vh">
-        <Spinner size="xl" color="brand.500" />
+        <Spinner size="xl" />
       </Center>
     );
   }
 
-  //  Dacă nu există user → redirect la login
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  //  Dacă există restricții și rolul nu e permis
   if (allowedRoles && !allowedRoles.includes(user.rol)) {
-    // redirectăm userul la pagina rolului REAL
-    //if (user.rol === "ROLE_ADMIN")
-    //return <Navigate to="/admin/dashboard" replace />;
-    if (user.rol === "ROLE_EDITOR")
-      return <Navigate to="/editor/tasks" replace />;
+    if (user.rol === "ROLE_ADMIN") {
+      return <Navigate to="/admin/dashboard" replace />;
+    }
+
+    if (user.rol === "ROLE_EDITOR") {
+      return <Navigate to="/editor/projects" replace />;
+    }
+
     return <Navigate to="/tasks" replace />; // ROLE_USER
   }
 
-  //  Dacă totul e OK → afișăm pagina cerută
   return <>{children}</>;
 }

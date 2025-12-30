@@ -14,6 +14,7 @@ public class TaskMapper {
         dto.setPrioritate(task.getPrioritate());
         dto.setCategorie(task.getCategorie());
         dto.setDataCreare(task.getDataCreare());
+        dto.setDataLimita(task.getDataLimita());
         dto.setProjectId(task.getProjectId());
         dto.setIdCreator(task.getIdCreator());
         return dto;

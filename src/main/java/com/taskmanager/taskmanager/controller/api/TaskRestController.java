@@ -11,6 +11,7 @@ import com.taskmanager.taskmanager.service.ProjectService;
 import com.taskmanager.taskmanager.service.TaskService;
 import com.taskmanager.taskmanager.service.UserService;
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -113,18 +114,17 @@ public class TaskRestController {
 // EDITOR – GET TASK BY ID
 // =========================
     @GetMapping("/editor/tasks/{id}")
-    public TaskResponse getEditorTaskById(
+    public ResponseEntity<TaskResponse> getEditorTaskById(
             @PathVariable Long id,
             Authentication authentication
     ) {
         Task task = taskService.findById(id);
         if (task == null) {
-            throw new RuntimeException("Task not found");
+            return ResponseEntity.notFound().build();
         }
 
         User editor = userService.findByUsername(authentication.getName());
 
-        // verificăm că editorul are acces la proiect
         ProjectResponse project = projectService.getProjectById(
                 task.getProjectId(),
                 editor.getId(),
@@ -135,8 +135,9 @@ public class TaskRestController {
             throw new ForbiddenException("You are not allowed to access this task");
         }
 
-        return TaskMapper.toResponse(task);
+        return ResponseEntity.ok(TaskMapper.toResponse(task));
     }
+
     // =========================
 // EDITOR – UPDATE TASK
 // =========================
@@ -210,6 +211,34 @@ public class TaskRestController {
 
         task.setIdCreator(userId);
         return TaskMapper.toResponse(taskService.update(task));
+    }
+    // =========================
+// EDITOR – DELETE TASK
+// =========================
+    @DeleteMapping("/editor/tasks/{id}")
+    public void deleteTask(
+            @PathVariable Long id,
+            Authentication authentication
+    ) {
+        Task task = taskService.findById(id);
+        if (task == null) {
+            throw new RuntimeException("Task not found");
+        }
+
+        User editor = userService.findByUsername(authentication.getName());
+
+        // verificăm accesul editorului la proiect
+        ProjectResponse project = projectService.getProjectById(
+                task.getProjectId(),
+                editor.getId(),
+                editor.getRol()
+        );
+
+        if (project == null) {
+            throw new ForbiddenException("You are not allowed to delete this task");
+        }
+
+        taskService.delete(id);
     }
 
 

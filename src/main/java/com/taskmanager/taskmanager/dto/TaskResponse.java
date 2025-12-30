@@ -13,6 +13,8 @@ public class TaskResponse {
     private LocalDate dataCreare;
     private Long projectId;
     private Long idCreator;
+    private LocalDate dataLimita;
+
 
     // getters & setters
     public Long getId() { return id; }
@@ -41,4 +43,13 @@ public class TaskResponse {
 
     public Long getIdCreator() { return idCreator; }
     public void setIdCreator(Long idCreator) { this.idCreator = idCreator; }
+
+    public LocalDate getDataLimita() {
+        return dataLimita;
+    }
+
+    public void setDataLimita(LocalDate dataLimita) {
+        this.dataLimita = dataLimita;
+    }
+
 }
