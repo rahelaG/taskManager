@@ -4,6 +4,7 @@ import com.taskmanager.taskmanager.dto.ProjectResponse;
 import com.taskmanager.taskmanager.dto.TaskRequest;
 import com.taskmanager.taskmanager.entity.Task;
 import com.taskmanager.taskmanager.entity.User;
+import com.taskmanager.taskmanager.exception.ForbiddenException;
 import com.taskmanager.taskmanager.service.ProjectService;
 import com.taskmanager.taskmanager.service.TaskService;
 import com.taskmanager.taskmanager.service.UserService;
@@ -90,7 +91,8 @@ public class TaskRestController {
         );
 
         if (project == null) {
-            return ResponseEntity.status(403).build();
+            throw new ForbiddenException("You are not allowed to access this task");
+
         }
 
         return ResponseEntity.ok(task);
@@ -124,7 +126,7 @@ public class TaskRestController {
         );
 
         if (project == null) {
-            throw new RuntimeException("You are not allowed to add tasks to this project");
+            throw new ForbiddenException("You are not allowed to add tasks to this project");
         }
 
         Task task = new Task();

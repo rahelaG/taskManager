@@ -3,6 +3,7 @@ package com.taskmanager.taskmanager.controller.api;
 import com.taskmanager.taskmanager.dto.ProjectRequest;
 import com.taskmanager.taskmanager.dto.ProjectResponse;
 import com.taskmanager.taskmanager.entity.User;
+import com.taskmanager.taskmanager.exception.ForbiddenException;
 import com.taskmanager.taskmanager.service.ProjectService;
 import com.taskmanager.taskmanager.service.UserService;
 import jakarta.validation.Valid;
@@ -34,7 +35,7 @@ public class ProjectRestController {
         String role = authentication.getAuthorities().iterator().next().getAuthority();
 
         if (!"ROLE_ADMIN".equals(role)) {
-            return ResponseEntity.status(403).build();
+            throw new ForbiddenException("Only admins can create projects");
         }
 
         ProjectResponse saved = projectService.createProject(request);
