@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../services/api";
 import { useToast } from "@chakra-ui/react";
+import { useNavigate } from "react-router-dom";
 
 interface User {
   id: number;
@@ -11,13 +12,37 @@ interface User {
 
 export function useEditorTaskEdit(taskId: string | undefined) {
   const toast = useToast();
+  const navigate = useNavigate();
+
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<User[]>([]);
   const [task, setTask] = useState<any>(null);
 
   const loadTask = async () => {
-    const res = await api.get(`/api/editor/tasks/${taskId}`);
-    setTask(res.data);
+    try {
+      const res = await api.get(`/api/editor/tasks/${taskId}`);
+      setTask(res.data);
+    } catch (err: any) {
+      if (err.response?.status === 403) {
+        toast({
+          title: "You don't have access to this task",
+          status: "error",
+        });
+        navigate("/editor/tasks");
+      } else if (err.response?.status === 404) {
+        toast({
+          title: "Task not found",
+          status: "error",
+        });
+        navigate("/editor/tasks");
+      } else {
+        toast({
+          title: "Error loading task",
+          status: "error",
+        });
+      }
+      throw err;
+    }
   };
 
   const loadUsers = async () => {
@@ -39,9 +64,6 @@ export function useEditorTaskEdit(taskId: string | undefined) {
 
   useEffect(() => {
     Promise.all([loadTask(), loadUsers()])
-      .catch(() =>
-        toast({ title: "Error loading data", status: "error" })
-      )
       .finally(() => setLoading(false));
   }, []);
 

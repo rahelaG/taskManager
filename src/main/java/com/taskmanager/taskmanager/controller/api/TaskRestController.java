@@ -108,4 +108,109 @@ public class TaskRestController {
 
         return TaskMapper.toResponse(taskService.save(task));
     }
+
+    // =========================
+// EDITOR – GET TASK BY ID
+// =========================
+    @GetMapping("/editor/tasks/{id}")
+    public TaskResponse getEditorTaskById(
+            @PathVariable Long id,
+            Authentication authentication
+    ) {
+        Task task = taskService.findById(id);
+        if (task == null) {
+            throw new RuntimeException("Task not found");
+        }
+
+        User editor = userService.findByUsername(authentication.getName());
+
+        // verificăm că editorul are acces la proiect
+        ProjectResponse project = projectService.getProjectById(
+                task.getProjectId(),
+                editor.getId(),
+                editor.getRol()
+        );
+
+        if (project == null) {
+            throw new ForbiddenException("You are not allowed to access this task");
+        }
+
+        return TaskMapper.toResponse(task);
+    }
+    // =========================
+// EDITOR – UPDATE TASK
+// =========================
+    @PutMapping("/editor/tasks/{id}")
+    public TaskResponse updateTask(
+            @PathVariable Long id,
+            @RequestBody TaskRequest dto,
+            Authentication authentication
+    ) {
+        Task existing = taskService.findById(id);
+        if (existing == null) {
+            throw new RuntimeException("Task not found");
+        }
+
+        User editor = userService.findByUsername(authentication.getName());
+
+        // verificăm acces la proiect
+        ProjectResponse project = projectService.getProjectById(
+                existing.getProjectId(),
+                editor.getId(),
+                editor.getRol()
+        );
+
+        if (project == null) {
+            throw new ForbiddenException("You are not allowed to edit this task");
+        }
+
+        // update câmpuri
+        existing.setTitlu(dto.getTitlu());
+        existing.setDescriere(dto.getDescriere());
+        existing.setStatus(dto.getStatus());
+        existing.setPrioritate(dto.getPrioritate());
+        existing.setCategorie(dto.getCategorie());
+        existing.setDataLimita(dto.getDataLimita());
+
+        return TaskMapper.toResponse(taskService.update(existing));
+    }
+
+    // =========================
+// EDITOR – ASSIGN TASK
+// =========================
+    @PostMapping("/editor/tasks/{id}/assign")
+    public TaskResponse assignTask(
+            @PathVariable Long id,
+            @RequestParam Long userId,
+            Authentication authentication
+    ) {
+        Task task = taskService.findById(id);
+        if (task == null) {
+            throw new RuntimeException("Task not found");
+        }
+
+        User editor = userService.findByUsername(authentication.getName());
+
+        // verificăm accesul editorului la proiect
+        ProjectResponse project = projectService.getProjectById(
+                task.getProjectId(),
+                editor.getId(),
+                editor.getRol()
+        );
+
+        if (project == null) {
+            throw new ForbiddenException("You are not allowed to assign this task");
+        }
+
+        // verificăm că user-ul există
+        User user = userService.findById(userId);
+        if (user == null || !"ROLE_USER".equals(user.getRol())) {
+            throw new RuntimeException("Invalid user");
+        }
+
+        task.setIdCreator(userId);
+        return TaskMapper.toResponse(taskService.update(task));
+    }
+
+
 }

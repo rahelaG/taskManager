@@ -6,6 +6,8 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
+
 @Getter
 @Setter
 public class TaskRequest {
@@ -31,5 +33,8 @@ public class TaskRequest {
 
     @NotNull(message = "Project ID is required")
     private Long projectId;
+
+    private LocalDate dataLimita;
+
 
 }
