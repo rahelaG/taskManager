@@ -57,6 +57,12 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    public List<Long> findProjectIdsForEditor(Long editorId) {
+        return projectRepository.findProjectIdsByEditorId(editorId);
+    }
+
+
+    @Override
     public ProjectResponse getProjectById(Long projectId, Long editorId, String role) {
 
         Project project = null;

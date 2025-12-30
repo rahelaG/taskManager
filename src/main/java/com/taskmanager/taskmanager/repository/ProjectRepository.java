@@ -2,6 +2,8 @@ package com.taskmanager.taskmanager.repository;
 
 import com.taskmanager.taskmanager.entity.Project;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -15,4 +17,8 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 
     // 🔹 Editor / User: acces doar daca proiectul apartine editorului
     Optional<Project> findByIdAndEditorId(Long projectId, Long editorId);
+
+    @Query("select p.id from Project p where p.editorId = :editorId")
+    List<Long> findProjectIdsByEditorId(@Param("editorId") Long editorId);
+
 }

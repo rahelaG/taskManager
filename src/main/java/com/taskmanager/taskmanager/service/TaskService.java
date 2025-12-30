@@ -2,24 +2,37 @@ package com.taskmanager.taskmanager.service;
 
 import com.taskmanager.taskmanager.entity.Task;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface TaskService {
 
-    // Pentru USER normal (filtrează DOAR task-urile lui)
-    List<Task> filterTasks(String status, String prioritate, String categorie, String username);
+    // USER
+    List<Task> getUserTasks(
+            String status,
+            String prioritate,
+            String categorie,
+            String username
+    );
 
-    // Pentru EDITOR: filtrează TOATE task-urile
-    List<Task> filterTasksForEditor(String status, String prioritate, String categorie);
+    // EDITOR
+    List<Task> getEditorTasks(
+            String status,
+            String prioritate,
+            String categorie,
+            Long projectId,
+            String username
+    );
 
-    // CRUD necesar pentru Editor (și eventual Admin)
+    // CRUD
     Task save(Task task);
     Task update(Task task);
     void delete(Long id);
     Task findById(Long id);
+    List<Task> findAll();   // ✅ FIX
 
-    List<Task> findAll();
+    // DASHBOARD
     int countByStatus(String status);
-
     int countByPriority(String prioritate);
 }
+

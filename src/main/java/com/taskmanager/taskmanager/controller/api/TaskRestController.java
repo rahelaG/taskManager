@@ -11,7 +11,6 @@ import com.taskmanager.taskmanager.service.ProjectService;
 import com.taskmanager.taskmanager.service.TaskService;
 import com.taskmanager.taskmanager.service.UserService;
 import jakarta.validation.Valid;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,7 +36,7 @@ public class TaskRestController {
     }
 
     // =========================
-    // 1. TASK-URILE USERULUI
+    // USER – task-urile lui
     // =========================
     @GetMapping("/tasks")
     public List<TaskResponse> getUserTasks(
@@ -46,32 +45,31 @@ public class TaskRestController {
             @RequestParam(required = false) String categorie,
             Authentication authentication
     ) {
-        String username = authentication.getName();
-
-        return taskService.filterTasks(
-                        normalize(status),
-                        normalize(prioritate),
-                        normalize(categorie),
-                        username
-                )
+        return taskService
+                .getUserTasks(status, prioritate, categorie, authentication.getName())
                 .stream()
                 .map(TaskMapper::toResponse)
                 .toList();
     }
 
     // =========================
-    // 2. TASK-URILE EDITORULUI
+    // EDITOR – task-uri (per proiect)
     // =========================
     @GetMapping("/editor/tasks")
     public List<TaskResponse> getEditorTasks(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String prioritate,
-            @RequestParam(required = false) String categorie
+            @RequestParam(required = false) String categorie,
+            @RequestParam(required = false) Long projectId,
+            Authentication authentication
     ) {
-        return taskService.filterTasksForEditor(
-                        normalize(status),
-                        normalize(prioritate),
-                        normalize(categorie)
+        return taskService
+                .getEditorTasks(
+                        status,
+                        prioritate,
+                        categorie,
+                        projectId,
+                        authentication.getName()
                 )
                 .stream()
                 .map(TaskMapper::toResponse)
@@ -79,53 +77,14 @@ public class TaskRestController {
     }
 
     // =========================
-    // 3. GET TASK BY ID (CU VERIFICARE PROJECT)
-    // =========================
-    @GetMapping("/editor/tasks/{id}")
-    public ResponseEntity<TaskResponse> getTaskById(
-            @PathVariable Long id,
-            Authentication authentication
-    ) {
-        Task task = taskService.findById(id);
-        if (task == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        String username = authentication.getName();
-        User editor = userService.findByUsername(username);
-
-        ProjectResponse project = projectService.getProjectById(
-                task.getProjectId(),
-                editor.getId(),
-                editor.getRol()
-        );
-
-        if (project == null) {
-            throw new ForbiddenException("You are not allowed to access this task");
-        }
-
-        return ResponseEntity.ok(TaskMapper.toResponse(task));
-    }
-
-    // =========================
-    // HELPER
-    // =========================
-    private String normalize(String value) {
-        if (value == null) return null;
-        String trimmed = value.trim();
-        return trimmed.isEmpty() ? null : trimmed;
-    }
-
-    // =========================
-    // 4. CREATE TASK
+    // CREATE TASK
     // =========================
     @PostMapping("/editor/tasks")
     public TaskResponse createTask(
             @Valid @RequestBody TaskRequest dto,
             Authentication authentication
     ) {
-        String username = authentication.getName();
-        User editor = userService.findByUsername(username);
+        User editor = userService.findByUsername(authentication.getName());
 
         ProjectResponse project = projectService.getProjectById(
                 dto.getProjectId(),
@@ -148,50 +107,5 @@ public class TaskRestController {
         task.setDataCreare(LocalDate.now());
 
         return TaskMapper.toResponse(taskService.save(task));
-    }
-
-    // =========================
-    // 5. UPDATE TASK
-    // =========================
-    @PutMapping("/editor/tasks/{id}")
-    public TaskResponse updateTask(
-            @PathVariable Long id,
-            @RequestBody Task updatedTask
-    ) {
-        Task existing = taskService.findById(id);
-        if (existing == null) {
-            return null;
-        }
-
-        updatedTask.setId(id);
-        updatedTask.setDataCreare(existing.getDataCreare());
-        updatedTask.setProjectId(existing.getProjectId());
-
-        return TaskMapper.toResponse(taskService.update(updatedTask));
-    }
-
-    // =========================
-    // 6. DELETE TASK
-    // =========================
-    @DeleteMapping("/editor/tasks/{id}")
-    public void deleteTask(@PathVariable Long id) {
-        taskService.delete(id);
-    }
-
-    // =========================
-    // 7. ASSIGN TASK
-    // =========================
-    @PostMapping("/editor/tasks/{id}/assign")
-    public TaskResponse assignTask(
-            @PathVariable Long id,
-            @RequestParam Long userId
-    ) {
-        Task task = taskService.findById(id);
-        if (task == null) {
-            return null;
-        }
-
-        task.setIdCreator(userId);
-        return TaskMapper.toResponse(taskService.update(task));
     }
 }

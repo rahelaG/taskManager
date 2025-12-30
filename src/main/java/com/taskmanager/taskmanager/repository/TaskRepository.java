@@ -11,32 +11,41 @@ import java.util.List;
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Long> {
 
-    // ✔ USER: DOAR task-urile lui
-    @Query("SELECT t FROM Task t " +
-            "WHERE t.idCreator = :userId " +
-            "AND (:status IS NULL OR t.status = :status) " +
-            "AND (:prioritate IS NULL OR t.prioritate = :prioritate) " +
-            "AND (:categorie IS NULL OR t.categorie LIKE %:categorie%)")
-    List<Task> filterTasks(
+    // USER – doar task-urile lui
+    @Query("""
+        SELECT t FROM Task t
+        WHERE t.idCreator = :userId
+        AND (:status IS NULL OR t.status = :status)
+        AND (:prioritate IS NULL OR t.prioritate = :prioritate)
+        AND (:categorie IS NULL OR t.categorie LIKE %:categorie%)
+    """)
+    List<Task> filterTasksForUser(
             @Param("status") String status,
             @Param("prioritate") String prioritate,
             @Param("categorie") String categorie,
             @Param("userId") Long userId
     );
 
-    // ✔ EDITOR: toate task-urile
-    @Query("SELECT t FROM Task t " +
-            "WHERE (:status IS NULL OR t.status = :status) " +
-            "AND (:prioritate IS NULL OR t.prioritate = :prioritate) " +
-            "AND (:categorie IS NULL OR t.categorie LIKE %:categorie%)")
-    List<Task> filterTasksForEditor(
+    // EDITOR – task-uri din TOATE proiectele lui
+    @Query("""
+        SELECT t FROM Task t
+        WHERE t.projectId IN :projectIds
+        AND (:status IS NULL OR t.status = :status)
+        AND (:prioritate IS NULL OR t.prioritate = :prioritate)
+        AND (:categorie IS NULL OR t.categorie LIKE %:categorie%)
+    """)
+    List<Task> filterTasksForEditorProjects(
+            @Param("projectIds") List<Long> projectIds,
             @Param("status") String status,
             @Param("prioritate") String prioritate,
             @Param("categorie") String categorie
     );
 
-    // ✔ ADMIN & Dashboard
-    @Query("SELECT COUNT(t) FROM Task t WHERE t.status = :status")
-    int countByStatus(@Param("status") String status);
+    // EDITOR – task-uri dintr-un proiect
+    List<Task> findByProjectId(Long projectId);
+
+    // DASHBOARD
+    int countByStatus(String status);
     int countByPrioritate(String prioritate);
 }
+

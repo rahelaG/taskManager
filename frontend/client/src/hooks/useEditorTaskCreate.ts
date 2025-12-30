@@ -1,47 +1,50 @@
 import { useEffect, useState } from "react";
 import { api } from "../services/api";
 import { useToast } from "@chakra-ui/react";
-import type { TaskFormValues } from "../components/tasks/TaskForm";
+import { useProjectContext } from "../context/ProjectContext";
 
 interface User {
   id: number;
   nume: string;
   utilizator: string;
-  rol: string;
 }
+
+type TaskFormValues = {
+  titlu: string;
+  descriere: string;
+  status: string;
+  prioritate: string;
+  categorie: string;
+  idCreator?: string;
+};
 
 export function useEditorTaskCreate() {
   const [users, setUsers] = useState<User[]>([]);
   const toast = useToast();
-
-  const loadUsers = async () => {
-    try {
-      const res = await api.get("/api/users/all");
-      setUsers(res.data.filter((u: User) => u.rol === "ROLE_USER"));
-    } catch {
-      toast({ title: "Unable to load users", status: "error" });
-    }
-  };
-
-  const createTask = async (values: TaskFormValues) => {
-    try {
-      await api.post("/api/editor/tasks", {
-        ...values,
-        categorie: values.categorie || null,
-        dataLimita: values.dataLimita || null,
-        idCreator: Number(values.idCreator),
-      });
-
-      toast({ title: "Task created successfully", status: "success" });
-    } catch {
-      toast({ title: "Task creation failed", status: "error" });
-      throw new Error("Create task failed");
-    }
-  };
+  const { currentProject } = useProjectContext(); // 🔥 SAFE hook
 
   useEffect(() => {
-    loadUsers();
+    api.get("/api/users/all").then((res) => setUsers(res.data));
   }, []);
+
+  const createTask = async (values: TaskFormValues) => {
+    if (!currentProject) {
+      throw new Error("No project selected");
+    }
+
+    await api.post("/api/editor/tasks", {
+      ...values,
+      idCreator: values.idCreator
+        ? Number(values.idCreator)
+        : undefined,
+      projectId: currentProject.id,
+    });
+
+    toast({
+      title: "Task created",
+      status: "success",
+    });
+  };
 
   return {
     users,

@@ -15,6 +15,7 @@ import {
 import { HamburgerIcon, CloseIcon, MoonIcon, SunIcon } from "@chakra-ui/icons";
 import { Link as RouterLink, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import ProjectSelector from "../projects/ProjectSelector";
 
 export default function Navbar() {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -38,6 +39,9 @@ export default function Navbar() {
     window.location.href = "/login";
   };
 
+  const showProjectSelector =
+    user?.rol === "ROLE_EDITOR" || user?.rol === "ROLE_ADMIN";
+
   return (
     <Box bg={bg} px={4} mb={6}>
       <Flex h={16} alignItems={"center"} justifyContent={"space-between"}>
@@ -54,7 +58,7 @@ export default function Navbar() {
 
         {/* MENIU DESKTOP */}
         <HStack
-          spacing={8}
+          spacing={6}
           alignItems={"center"}
           display={{ base: "none", md: "flex" }}
         >
@@ -105,6 +109,9 @@ export default function Navbar() {
               </Button>
             </>
           )}
+
+          {/* ✅ PROJECT SELECTOR (EDITOR/ADMIN) */}
+          {showProjectSelector && <ProjectSelector />}
 
           {/* 🔘 SWITCH DARK MODE */}
           <IconButton
@@ -166,6 +173,9 @@ export default function Navbar() {
                 </Button>
               </>
             )}
+
+            {/* ✅ PROJECT SELECTOR (MOBILE) */}
+            {showProjectSelector && <ProjectSelector />}
 
             {/* DARK MODE MOBILE */}
             <Button onClick={toggleColorMode} variant="ghost">

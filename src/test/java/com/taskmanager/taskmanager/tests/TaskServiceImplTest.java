@@ -1,68 +1,110 @@
-package com.taskmanager.taskmanager.tests;
+package com.taskmanager.taskmanager.service;
 
 import com.taskmanager.taskmanager.entity.Task;
+import com.taskmanager.taskmanager.entity.User;
 import com.taskmanager.taskmanager.repository.TaskRepository;
-import com.taskmanager.taskmanager.service.UserService;
 import com.taskmanager.taskmanager.service.impl.TaskServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentMatchers;
-import org.mockito.Mockito;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 class TaskServiceImplTest {
 
     private TaskRepository taskRepository;
     private UserService userService;
+    private ProjectService projectService;
     private TaskServiceImpl taskService;
 
     @BeforeEach
     void setUp() {
         taskRepository = mock(TaskRepository.class);
         userService = mock(UserService.class);
-        taskService = new TaskServiceImpl(taskRepository, userService);
+        projectService = mock(ProjectService.class);
+
+        taskService = new TaskServiceImpl(
+                taskRepository,
+                userService,
+                projectService
+        );
     }
 
+    // =========================
+    // USER TASKS
+    // =========================
     @Test
-    void testFilterTasks_RemovesEmptyStrings() {
-        // Arrange
+    void getUserTasks_returnsOnlyUserTasks() {
         when(userService.getUserIdByUsername("maria")).thenReturn(1L);
-        when(taskRepository.filterTasks(null, null, null, 1L)).thenReturn(List.of());
+        when(taskRepository.filterTasksForUser(null, null, null, 1L))
+                .thenReturn(List.of(new Task()));
 
-        // Act
-        List<Task> result = taskService.filterTasks("", " ", "", "maria");
+        List<Task> result =
+                taskService.getUserTasks(null, null, null, "maria");
 
-        // Assert
-        verify(taskRepository).filterTasks(null, null, null, 1L);
-        assertNotNull(result);
+        assertEquals(1, result.size());
+        verify(taskRepository).filterTasksForUser(null, null, null, 1L);
     }
 
+    // =========================
+    // EDITOR TASKS (ALL PROJECTS)
+    // =========================
     @Test
-    void testFilterTasks_CallsRepositoryWithUserId() {
-        when(userService.getUserIdByUsername("ana")).thenReturn(5L);
-        when(taskRepository.filterTasks("done", null, null, 5L)).thenReturn(List.of());
+    void getEditorTasks_withoutProjectId_returnsTasksFromEditorProjects() {
+        User editor = new User();
+        editor.setId(10L);
+        editor.setRol("ROLE_EDITOR");
 
-        taskService.filterTasks("done", null, null, "ana");
+        when(userService.findByUsername("editor")).thenReturn(editor);
+        when(projectService.findProjectIdsForEditor(10L))
+                .thenReturn(List.of(100L, 200L));
 
-        verify(taskRepository).filterTasks("done", null, null, 5L);
+        when(taskRepository.filterTasksForEditorProjects(
+                List.of(100L, 200L),
+                null,
+                null,
+                null
+        )).thenReturn(List.of(new Task(), new Task()));
+
+        List<Task> result =
+                taskService.getEditorTasks(null, null, null, null, "editor");
+
+        assertEquals(2, result.size());
     }
 
+    // =========================
+    // EDITOR TASKS (ONE PROJECT)
+    // =========================
     @Test
-    void testFilterTasksForEditor_CleansEmptyParams() {
-        when(taskRepository.filterTasksForEditor(null, "HIGH", null)).thenReturn(List.of());
+    void getEditorTasks_withProjectId_returnsTasksFromThatProject() {
+        User editor = new User();
+        editor.setId(5L);
+        editor.setRol("ROLE_EDITOR");
 
-        taskService.filterTasksForEditor("", "HIGH", "  ");
+        when(userService.findByUsername("editor")).thenReturn(editor);
+        when(projectService.findProjectIdsForEditor(5L))
+                .thenReturn(List.of(99L));
 
-        verify(taskRepository).filterTasksForEditor(null, "HIGH", null);
+        when(taskRepository.findByProjectId(99L))
+                .thenReturn(List.of(new Task()));
+
+        List<Task> result =
+                taskService.getEditorTasks(null, null, null, 99L, "editor");
+
+        assertEquals(1, result.size());
+        verify(taskRepository).findByProjectId(99L);
     }
 
+    // =========================
+    // SAVE TASK
+    // =========================
     @Test
-    void testSaveTask() {
+    void saveTask_requiresProjectId() {
         Task task = new Task();
+        task.setProjectId(1L);
+
         when(taskRepository.save(task)).thenReturn(task);
 
         Task result = taskService.save(task);
@@ -71,9 +113,12 @@ class TaskServiceImplTest {
         verify(taskRepository).save(task);
     }
 
+    // =========================
+    // DELETE TASK
+    // =========================
     @Test
-    void testDeleteTask() {
-        taskService.delete(10L);
-        verify(taskRepository).deleteById(10L);
+    void deleteTask_deletesById() {
+        taskService.delete(42L);
+        verify(taskRepository).deleteById(42L);
     }
 }

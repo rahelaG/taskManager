@@ -18,4 +18,6 @@ public interface ProjectService {
 
     // EDITOR / ADMIN: vede un proiect daca are acces
     ProjectResponse getProjectById(Long projectId, Long editorId, String role);
+
+    List<Long> findProjectIdsForEditor(Long editorId);
 }

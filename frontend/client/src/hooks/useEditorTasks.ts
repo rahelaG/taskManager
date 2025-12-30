@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../services/api";
 import { useToast } from "@chakra-ui/react";
 import type { Task } from "../types/task";
+import { useProjectContext } from "../context/ProjectContext";
 
 interface User {
   id: number;
@@ -15,12 +16,18 @@ export function useEditorTasks() {
   const [loading, setLoading] = useState(true);
   const toast = useToast();
 
+  const { currentProject } = useProjectContext();
+
   const userMap = Object.fromEntries(
     users.map((u) => [u.id, `${u.nume} (${u.utilizator})`])
   );
 
   const fetchTasks = async () => {
-    const res = await api.get("/api/editor/tasks");
+    const url = currentProject
+      ? `/api/editor/tasks?projectId=${currentProject.id}`
+      : `/api/editor/tasks`;
+
+    const res = await api.get(url);
     setTasks(res.data);
   };
 
@@ -42,12 +49,15 @@ export function useEditorTasks() {
   };
 
   useEffect(() => {
+    setLoading(true);
+
     Promise.all([fetchTasks(), fetchUsers()])
       .catch(() =>
         toast({ title: "Error loading data", status: "error" })
       )
       .finally(() => setLoading(false));
-  }, []);
+    // 🔥 refacem fetch dacă se schimbă proiectul selectat
+  }, [currentProject?.id]);
 
   return {
     tasks,
