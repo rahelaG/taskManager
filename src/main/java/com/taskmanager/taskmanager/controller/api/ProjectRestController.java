@@ -59,7 +59,7 @@ public class ProjectRestController {
             return ResponseEntity.ok(projectService.findProjectsForEditor(user.getId()));
         }
 
-        return ResponseEntity.status(403).build();
+        throw new ForbiddenException("Only admins can create projects");
     }
 
     // ADMIN / EDITOR – detalii proiect
