@@ -14,6 +14,7 @@ import EditorTaskCreatePage from "../pages/EditorTaskCreatePage";
 import EditorTaskEditPage from "../pages/EditorTaskEditPage";
 import AdminUserCreatePage from "../pages/AdminUserCreatePage";
 import AdminUserEditPage from "../pages/AdminUserEditPage";
+import ProjectsPage from "../pages/ProjectsPage";
 
 export default function AppRouter() {
   return (
@@ -58,6 +59,14 @@ export default function AppRouter() {
         element={
           <ProtectedRoute allowedRoles={["ROLE_EDITOR", "ROLE_ADMIN"]}>
             <EditorTaskEditPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/projects"
+        element={
+          <ProtectedRoute allowedRoles={["ROLE_ADMIN", "ROLE_EDITOR"]}>
+            <ProjectsPage />
           </ProtectedRoute>
         }
       />
