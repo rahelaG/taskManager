@@ -94,5 +94,19 @@ public class ProjectServiceImpl implements ProjectService {
         Project saved = projectRepository.save(project);
         return ProjectMapper.toResponse(saved);
     }
+    @Override
+    public ProjectResponse updateProject(Long projectId, ProjectRequest request) {
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new IllegalArgumentException("Project not found"));
+
+        project.setNume(request.getNume());
+        project.setDescriere(request.getDescriere());
+        project.setEditorId(request.getEditorId());
+
+        Project saved = projectRepository.save(project);
+        return ProjectMapper.toResponse(saved);
+    }
+
 
 }

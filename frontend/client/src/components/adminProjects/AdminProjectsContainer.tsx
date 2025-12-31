@@ -10,14 +10,21 @@ import {
 } from "@chakra-ui/react";
 import { api } from "../../services/api";
 import type { Project } from "../../types/project";
+
+// ⚠️ FOARTE IMPORTANT
 import AdminProjectList from "./AdminProjectList";
 import AdminProjectCreateModal from "./AdminProjectCreateModal";
+import AdminProjectEditModal from "./AdminProjectEditModal";
+import AdminProjectStatusModal from "./AdminProjectStatusModal";
 
 export default function AdminProjectsContainer() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const createModal = useDisclosure();
+  const editModal = useDisclosure();
+  const statusModal = useDisclosure();
 
   useEffect(() => {
     fetchProjects();
@@ -47,17 +54,42 @@ export default function AdminProjectsContainer() {
       <Flex justify="space-between" align="center" mb={6}>
         <Heading>Projects</Heading>
 
-        <Button colorScheme="blue" onClick={onOpen}>
+        <Button colorScheme="blue" onClick={createModal.onOpen}>
           + Create Project
         </Button>
       </Flex>
 
-      <AdminProjectList projects={projects} />
+      {/* 🔥 AICI E ESENȚIAL */}
+      <AdminProjectList
+        projects={projects}
+        onEdit={(project) => {
+          setSelectedProject(project);
+          editModal.onOpen();
+        }}
+        onChangeStatus={(project) => {
+          setSelectedProject(project);
+          statusModal.onOpen();
+        }}
+      />
 
       <AdminProjectCreateModal
-        isOpen={isOpen}
-        onClose={onClose}
+        isOpen={createModal.isOpen}
+        onClose={createModal.onClose}
         onCreated={fetchProjects}
+      />
+
+      <AdminProjectEditModal
+        project={selectedProject}
+        isOpen={editModal.isOpen}
+        onClose={editModal.onClose}
+        onSaved={fetchProjects}
+      />
+
+      <AdminProjectStatusModal
+        project={selectedProject}
+        isOpen={statusModal.isOpen}
+        onClose={statusModal.onClose}
+        onSaved={fetchProjects}
       />
     </Box>
   );

@@ -1,11 +1,26 @@
-import { Card, CardBody, Heading, Text, Badge, Stack } from "@chakra-ui/react";
+import {
+  Card,
+  CardBody,
+  Heading,
+  Text,
+  Badge,
+  Stack,
+  Button,
+  ButtonGroup,
+} from "@chakra-ui/react";
 import type { Project } from "../../types/project";
 
 type Props = {
   project: Project;
+  onEdit: (p: Project) => void;
+  onChangeStatus: (p: Project) => void;
 };
 
-export default function AdminProjectCard({ project }: Props) {
+export default function AdminProjectCard({
+  project,
+  onEdit,
+  onChangeStatus,
+}: Props) {
   const statusColor =
     project.status === "ACTIVE"
       ? "green"
@@ -34,6 +49,15 @@ export default function AdminProjectCard({ project }: Props) {
           <Text fontSize="sm" color="gray.500">
             Editor ID: {project.editorId}
           </Text>
+
+          <ButtonGroup size="sm" mt={2}>
+            <Button type="button" onClick={() => onEdit(project)}>
+              Edit
+            </Button>
+            <Button type="button" onClick={() => onChangeStatus(project)}>
+              Change Status
+            </Button>
+          </ButtonGroup>
         </Stack>
       </CardBody>
     </Card>

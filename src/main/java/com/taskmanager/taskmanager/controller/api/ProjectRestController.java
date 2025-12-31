@@ -2,6 +2,7 @@ package com.taskmanager.taskmanager.controller.api;
 
 import com.taskmanager.taskmanager.dto.ProjectRequest;
 import com.taskmanager.taskmanager.dto.ProjectResponse;
+import com.taskmanager.taskmanager.dto.ProjectStatusRequest;
 import com.taskmanager.taskmanager.entity.User;
 import com.taskmanager.taskmanager.exception.ForbiddenException;
 import com.taskmanager.taskmanager.service.ProjectService;
@@ -80,10 +81,29 @@ public class ProjectRestController {
         return ResponseEntity.ok(project);
     }
 
+    // =========================
+// ADMIN – update proiect
+// =========================
+    @PutMapping("/{id}")
+    public ResponseEntity<ProjectResponse> updateProject(
+            @PathVariable Long id,
+            @Valid @RequestBody ProjectRequest request,
+            Authentication authentication
+    ) {
+        String role = authentication.getAuthorities().iterator().next().getAuthority();
+
+        if (!"ROLE_ADMIN".equals(role)) {
+            throw new ForbiddenException("Only admins can update projects");
+        }
+
+        return ResponseEntity.ok(projectService.updateProject(id, request));
+    }
+
+
     @PutMapping("/{id}/status")
     public ResponseEntity<ProjectResponse> updateProjectStatus(
             @PathVariable Long id,
-            @RequestBody String status,
+            @RequestBody ProjectStatusRequest request,
             Authentication authentication
     ) {
         String role = authentication.getAuthorities().iterator().next().getAuthority();
@@ -92,7 +112,10 @@ public class ProjectRestController {
             throw new ForbiddenException("Only admins can update project status");
         }
 
-        return ResponseEntity.ok(projectService.updateProjectStatus(id, status));
+        return ResponseEntity.ok(
+                projectService.updateProjectStatus(id, request.getStatus())
+        );
     }
+
 
 }

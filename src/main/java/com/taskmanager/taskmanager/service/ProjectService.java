@@ -23,4 +23,8 @@ public interface ProjectService {
 
     // 🔹 R4: ADMIN – update status proiect
     ProjectResponse updateProjectStatus(Long projectId, String status);
+
+    // 🔹 R4: ADMIN – update proiect (nume, descriere, editor)
+    ProjectResponse updateProject(Long projectId, ProjectRequest request);
+
 }
