@@ -21,4 +21,7 @@ public interface UserService {
     User findById(Long id);
 
     void changePassword(Long id, String newPassword);
+
+    List<User> findEditors();
+
 }

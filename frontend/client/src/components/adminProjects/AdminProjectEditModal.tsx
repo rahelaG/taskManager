@@ -10,9 +10,11 @@ import {
   FormLabel,
   Input,
   Textarea,
+  Select,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { api } from "../../services/api";
+import { useEditors } from "../../hooks/useEditors";
 import type { Project } from "../../types/project";
 
 type Props = {
@@ -33,25 +35,22 @@ export default function AdminProjectEditModal({
   const [editorId, setEditorId] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // 🔹 sincronizăm state-ul când se schimbă proiectul
-  useEffect(() => {
-    if (!project) {
-      setNume("");
-      setDescriere("");
-      setEditorId("");
-      return;
-    }
+  const { editors, loading: editorsLoading } = useEditors();
 
-    setNume(project.nume);
-    setDescriere(project.descriere ?? "");
-    setEditorId(String(project.editorId));
+  useEffect(() => {
+    if (project && isOpen) {
+      setNume(project.nume);
+      setDescriere(project.descriere ?? "");
+      setEditorId(String(project.editorId));
+    }
   }, [project, isOpen]);
 
   const handleSave = async () => {
-    if (!project) return; // ✅ guard corect
+    if (!project) return;
 
-    setLoading(true);
     try {
+      setLoading(true);
+
       await api.put(`/api/projects/${project.id}`, {
         nume,
         descriere,
@@ -88,12 +87,19 @@ export default function AdminProjectEditModal({
           </FormControl>
 
           <FormControl isRequired>
-            <FormLabel>Editor ID</FormLabel>
-            <Input
-              type="number"
+            <FormLabel>Editor</FormLabel>
+            <Select
+              placeholder="Select editor"
               value={editorId}
               onChange={(e) => setEditorId(e.target.value)}
-            />
+              isDisabled={editorsLoading}
+            >
+              {editors.map((e) => (
+                <option key={e.id} value={e.id}>
+                  {e.nume}
+                </option>
+              ))}
+            </Select>
           </FormControl>
         </ModalBody>
 

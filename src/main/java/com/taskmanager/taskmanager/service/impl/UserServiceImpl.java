@@ -71,4 +71,10 @@ public class UserServiceImpl implements UserService {
         user.setParola(passwordEncoder.encode(newPassword));
         userRepository.save(user);
     }
+
+    @Override
+    public List<User> findEditors() {
+        return userRepository.findByRol("ROLE_EDITOR");
+    }
+
 }

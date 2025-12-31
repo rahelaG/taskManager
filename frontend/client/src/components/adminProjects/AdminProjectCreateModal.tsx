@@ -10,10 +10,11 @@ import {
   FormLabel,
   Input,
   Textarea,
-  //Select,
+  Select,
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { api } from "../../services/api";
+import { useEditors } from "../../hooks/useEditors";
 
 type Props = {
   isOpen: boolean;
@@ -31,9 +32,12 @@ export default function AdminProjectCreateModal({
   const [editorId, setEditorId] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async () => {
-    setLoading(true);
+  const { editors, loading: editorsLoading } = useEditors();
+
+  const handleCreate = async () => {
     try {
+      setLoading(true);
+
       await api.post("/api/projects", {
         nume,
         descriere,
@@ -62,11 +66,7 @@ export default function AdminProjectCreateModal({
         <ModalBody>
           <FormControl mb={3} isRequired>
             <FormLabel>Name</FormLabel>
-            <Input
-              value={nume}
-              onChange={(e) => setNume(e.target.value)}
-              placeholder="Project name"
-            />
+            <Input value={nume} onChange={(e) => setNume(e.target.value)} />
           </FormControl>
 
           <FormControl mb={3}>
@@ -74,28 +74,33 @@ export default function AdminProjectCreateModal({
             <Textarea
               value={descriere}
               onChange={(e) => setDescriere(e.target.value)}
-              placeholder="Optional description"
             />
           </FormControl>
 
           <FormControl isRequired>
-            <FormLabel>Editor ID</FormLabel>
-            <Input
+            <FormLabel>Editor</FormLabel>
+            <Select
+              placeholder="Select editor"
               value={editorId}
               onChange={(e) => setEditorId(e.target.value)}
-              placeholder="Editor user ID"
-              type="number"
-            />
+              isDisabled={editorsLoading}
+            >
+              {editors.map((e) => (
+                <option key={e.id} value={e.id}>
+                  {e.utilizator}
+                </option>
+              ))}
+            </Select>
           </FormControl>
         </ModalBody>
 
         <ModalFooter>
-          <Button mr={3} onClick={onClose} variant="ghost">
+          <Button variant="ghost" mr={3} onClick={onClose}>
             Cancel
           </Button>
           <Button
             colorScheme="blue"
-            onClick={handleSubmit}
+            onClick={handleCreate}
             isLoading={loading}
             isDisabled={!nume || !editorId}
           >

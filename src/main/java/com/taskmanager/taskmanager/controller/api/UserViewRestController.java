@@ -21,4 +21,6 @@ public class UserViewRestController {
     public List<User> getAllUsers() {
         return userService.findAllUsers();
     }
+
+
 }
