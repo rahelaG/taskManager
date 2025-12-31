@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Box, Flex, Heading, Button, Spinner, Center } from "@chakra-ui/react";
 import { api } from "../../services/api";
 import type { Project } from "../../types/project";
+import AdminProjectList from "./AdminProjectList";
 
 export default function AdminProjectsContainer() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -31,21 +32,14 @@ export default function AdminProjectsContainer() {
   }
 
   return (
-    <Box px={6}>
+    <Box p={8}>
       <Flex justify="space-between" align="center" mb={6}>
-        <Heading size="lg">Projects</Heading>
+        <Heading>Projects</Heading>
 
         <Button colorScheme="blue">+ Create Project</Button>
       </Flex>
 
-      {/* TEMPORAR: doar debug list */}
-      <Box>
-        {projects.map((p) => (
-          <Box key={p.id} p={4} mb={3} borderWidth="1px" borderRadius="md">
-            <strong>{p.nume}</strong> — {p.status}
-          </Box>
-        ))}
-      </Box>
+      <AdminProjectList projects={projects} />
     </Box>
   );
 }
