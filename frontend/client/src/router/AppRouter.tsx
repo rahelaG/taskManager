@@ -19,7 +19,8 @@ import AdminDashboardPage from "../pages/AdminDashboardPage";
 import AdminUsersPage from "../pages/AdminUsersPage";
 import AdminUserCreatePage from "../pages/AdminUserCreatePage";
 import AdminUserEditPage from "../pages/AdminUserEditPage";
-import ProjectsPage from "../pages/ProjectsPage";
+//import ProjectsPage from "../pages/ProjectsPage";
+import AdminProjectsPage from "../pages/AdminProjectsPage";
 
 export default function AppRouter() {
   return (
@@ -93,7 +94,7 @@ export default function AppRouter() {
         path="/admin/projects"
         element={
           <ProtectedRoute allowedRoles={["ROLE_ADMIN"]}>
-            <ProjectsPage />
+            <AdminProjectsPage />
           </ProtectedRoute>
         }
       />
