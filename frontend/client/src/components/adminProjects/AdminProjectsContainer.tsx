@@ -11,11 +11,11 @@ import {
 import { api } from "../../services/api";
 import type { Project } from "../../types/project";
 
-// ⚠️ FOARTE IMPORTANT
 import AdminProjectList from "./AdminProjectList";
 import AdminProjectCreateModal from "./AdminProjectCreateModal";
 import AdminProjectEditModal from "./AdminProjectEditModal";
 import AdminProjectStatusModal from "./AdminProjectStatusModal";
+import AdminProjectDeleteModal from "./AdminProjectDeleteModal";
 
 export default function AdminProjectsContainer() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -25,6 +25,7 @@ export default function AdminProjectsContainer() {
   const createModal = useDisclosure();
   const editModal = useDisclosure();
   const statusModal = useDisclosure();
+  const deleteModal = useDisclosure();
 
   useEffect(() => {
     fetchProjects();
@@ -53,13 +54,11 @@ export default function AdminProjectsContainer() {
     <Box p={8}>
       <Flex justify="space-between" align="center" mb={6}>
         <Heading>Projects</Heading>
-
         <Button colorScheme="blue" onClick={createModal.onOpen}>
           + Create Project
         </Button>
       </Flex>
 
-      {/* 🔥 AICI E ESENȚIAL */}
       <AdminProjectList
         projects={projects}
         onEdit={(project) => {
@@ -69,6 +68,10 @@ export default function AdminProjectsContainer() {
         onChangeStatus={(project) => {
           setSelectedProject(project);
           statusModal.onOpen();
+        }}
+        onDelete={(project) => {
+          setSelectedProject(project);
+          deleteModal.onOpen();
         }}
       />
 
@@ -90,6 +93,13 @@ export default function AdminProjectsContainer() {
         isOpen={statusModal.isOpen}
         onClose={statusModal.onClose}
         onSaved={fetchProjects}
+      />
+
+      <AdminProjectDeleteModal
+        project={selectedProject}
+        isOpen={deleteModal.isOpen}
+        onClose={deleteModal.onClose}
+        onDeleted={fetchProjects}
       />
     </Box>
   );

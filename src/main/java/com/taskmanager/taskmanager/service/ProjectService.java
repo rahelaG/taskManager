@@ -26,5 +26,7 @@ public interface ProjectService {
 
     // 🔹 R4: ADMIN – update proiect (nume, descriere, editor)
     ProjectResponse updateProject(Long projectId, ProjectRequest request);
+    // 🔹 R5: ADMIN – delete proiect
+    void deleteProject(Long projectId);
 
 }

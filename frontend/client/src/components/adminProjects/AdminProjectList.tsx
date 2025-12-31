@@ -6,12 +6,14 @@ type Props = {
   projects: Project[];
   onEdit: (p: Project) => void;
   onChangeStatus: (p: Project) => void;
+  onDelete: (p: Project) => void;
 };
 
 export default function AdminProjectList({
   projects,
   onEdit,
   onChangeStatus,
+  onDelete,
 }: Props) {
   if (projects.length === 0) {
     return <Text>No projects found.</Text>;
@@ -25,6 +27,7 @@ export default function AdminProjectList({
           project={project}
           onEdit={onEdit}
           onChangeStatus={onChangeStatus}
+          onDelete={onDelete}
         />
       ))}
     </SimpleGrid>

@@ -117,5 +117,24 @@ public class ProjectRestController {
         );
     }
 
+    // =========================
+// ADMIN – delete proiect
+// =========================
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteProject(
+            @PathVariable Long id,
+            Authentication authentication
+    ) {
+        String role = authentication.getAuthorities().iterator().next().getAuthority();
+
+        if (!"ROLE_ADMIN".equals(role)) {
+            throw new ForbiddenException("Only admins can delete projects");
+        }
+
+        projectService.deleteProject(id);
+        return ResponseEntity.noContent().build();
+    }
+
+
 
 }

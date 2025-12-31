@@ -14,12 +14,14 @@ type Props = {
   project: Project;
   onEdit: (p: Project) => void;
   onChangeStatus: (p: Project) => void;
+  onDelete: (p: Project) => void;
 };
 
 export default function AdminProjectCard({
   project,
   onEdit,
   onChangeStatus,
+  onDelete,
 }: Props) {
   const statusColor =
     project.status === "ACTIVE"
@@ -51,11 +53,12 @@ export default function AdminProjectCard({
           </Text>
 
           <ButtonGroup size="sm" mt={2}>
-            <Button type="button" onClick={() => onEdit(project)}>
-              Edit
-            </Button>
-            <Button type="button" onClick={() => onChangeStatus(project)}>
+            <Button onClick={() => onEdit(project)}>Edit</Button>
+            <Button onClick={() => onChangeStatus(project)}>
               Change Status
+            </Button>
+            <Button colorScheme="red" onClick={() => onDelete(project)}>
+              Delete
             </Button>
           </ButtonGroup>
         </Stack>
