@@ -1,9 +1,11 @@
 package com.taskmanager.taskmanager.service.impl;
 
-import com.taskmanager.taskmanager.entity.ProjectStatus;
+import com.taskmanager.taskmanager.dto.ProjectResponse; // 🔹 ADDED
+import com.taskmanager.taskmanager.dto.TaskResponse;    // 🔹 ADDED
 import com.taskmanager.taskmanager.entity.Task;
 import com.taskmanager.taskmanager.entity.User;
 import com.taskmanager.taskmanager.exception.ForbiddenException;
+import com.taskmanager.taskmanager.mapper.TaskMapper;   // 🔹 ADDED
 import com.taskmanager.taskmanager.repository.TaskRepository;
 import com.taskmanager.taskmanager.service.ProjectService;
 import com.taskmanager.taskmanager.service.TaskService;
@@ -41,16 +43,26 @@ public class TaskServiceImpl implements TaskService {
     ) {
         Long userId = userService.getUserIdByUsername(username);
 
-        status = normalize(status);
-        prioritate = normalize(prioritate);
-        categorie = normalize(categorie);
-
         return taskRepository.filterTasksForUser(
-                status,
-                prioritate,
-                categorie,
+                normalize(status),
+                normalize(prioritate),
+                normalize(categorie),
                 userId
         );
+    }
+
+    // 🔹 ADDED – USER tasks with project name
+    @Override
+    public List<TaskResponse> getUserTaskResponses(
+            String status,
+            String prioritate,
+            String categorie,
+            String username
+    ) {
+        return getUserTasks(status, prioritate, categorie, username)
+                .stream()
+                .map(this::mapWithProjectName)
+                .toList();
     }
 
     // =========================
@@ -70,10 +82,6 @@ public class TaskServiceImpl implements TaskService {
             throw new ForbiddenException("Admins are not allowed to access tasks");
         }
 
-        status = normalize(status);
-        prioritate = normalize(prioritate);
-        categorie = normalize(categorie);
-
         List<Long> editorProjectIds =
                 projectService.findProjectIdsForEditor(user.getId());
 
@@ -90,10 +98,25 @@ public class TaskServiceImpl implements TaskService {
 
         return taskRepository.filterTasksForEditorProjects(
                 editorProjectIds,
-                status,
-                prioritate,
-                categorie
+                normalize(status),
+                normalize(prioritate),
+                normalize(categorie)
         );
+    }
+
+    // 🔹 ADDED – EDITOR tasks with project name
+    @Override
+    public List<TaskResponse> getEditorTaskResponses(
+            String status,
+            String prioritate,
+            String categorie,
+            Long projectId,
+            String username
+    ) {
+        return getEditorTasks(status, prioritate, categorie, projectId, username)
+                .stream()
+                .map(this::mapWithProjectName)
+                .toList();
     }
 
     // =========================
@@ -141,7 +164,27 @@ public class TaskServiceImpl implements TaskService {
     }
 
     // =========================
-    // HELPER
+    // 🔹 ADDED – HELPER
+    // =========================
+    private TaskResponse mapWithProjectName(Task task) {
+        TaskResponse dto = TaskMapper.toResponse(task);
+
+        ProjectResponse project =
+                projectService.getProjectById(
+                        task.getProjectId(),
+                        null,
+                        "ROLE_ADMIN"
+                );
+
+        if (project != null) {
+            dto.setProjectName(project.getNume());
+        }
+
+        return dto;
+    }
+
+    // =========================
+    // HELPER EXISTENT
     // =========================
     private String normalize(String value) {
         return (value == null || value.isBlank()) ? null : value;

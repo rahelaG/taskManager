@@ -24,6 +24,9 @@ export default function TaskCard({ task }: Props) {
         <Heading size="md" mb={2}>
           {task.titlu}
         </Heading>
+        <Text fontSize="sm" color="gray.500" mb={2}>
+          📁 Proiect: <strong>{task.projectName}</strong>
+        </Text>
 
         <Text mb={4} color="gray.600">
           {task.descriere}

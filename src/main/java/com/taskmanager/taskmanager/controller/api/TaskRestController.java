@@ -47,11 +47,13 @@ public class TaskRestController {
             @RequestParam(required = false) String categorie,
             Authentication authentication
     ) {
-        return taskService
-                .getUserTasks(status, prioritate, categorie, authentication.getName())
-                .stream()
-                .map(TaskMapper::toResponse)
-                .toList();
+        // 🔹 CHANGED: folosim metoda care întoarce TaskResponse cu projectName
+        return taskService.getUserTaskResponses(
+                status,
+                prioritate,
+                categorie,
+                authentication.getName()
+        );
     }
 
     // =========================
@@ -71,17 +73,14 @@ public class TaskRestController {
             throw new ForbiddenException("Admins are not allowed to access tasks");
         }
 
-        return taskService
-                .getEditorTasks(
-                        status,
-                        prioritate,
-                        categorie,
-                        projectId,
-                        authentication.getName()
-                )
-                .stream()
-                .map(TaskMapper::toResponse)
-                .toList();
+        // 🔹 CHANGED: folosim metoda care întoarce TaskResponse cu projectName
+        return taskService.getEditorTaskResponses(
+                status,
+                prioritate,
+                categorie,
+                projectId,
+                authentication.getName()
+        );
     }
 
     // =========================
@@ -122,6 +121,7 @@ public class TaskRestController {
         task.setProjectId(dto.getProjectId());
         task.setDataCreare(LocalDate.now());
 
+        // 🔹 NOT CHANGED: aici e OK fără projectName (nu e nevoie imediat)
         return TaskMapper.toResponse(taskService.save(task));
     }
 
@@ -150,6 +150,7 @@ public class TaskRestController {
             throw new ForbiddenException("You are not allowed to access this task");
         }
 
+        // 🔹 NOT CHANGED
         return ResponseEntity.ok(TaskMapper.toResponse(task));
     }
 
@@ -190,6 +191,7 @@ public class TaskRestController {
         existing.setCategorie(dto.getCategorie());
         existing.setDataLimita(dto.getDataLimita());
 
+        // 🔹 NOT CHANGED
         return TaskMapper.toResponse(taskService.update(existing));
     }
 

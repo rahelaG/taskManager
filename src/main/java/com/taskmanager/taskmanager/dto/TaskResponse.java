@@ -14,6 +14,8 @@ public class TaskResponse {
     private Long projectId;
     private Long idCreator;
     private LocalDate dataLimita;
+    private String projectName;
+
 
 
     // getters & setters
@@ -22,6 +24,9 @@ public class TaskResponse {
 
     public String getTitlu() { return titlu; }
     public void setTitlu(String titlu) { this.titlu = titlu; }
+
+    public String getProjectName() { return projectName; }
+    public void setProjectName(String projectName) { this.projectName = projectName; }
 
     public String getDescriere() { return descriere; }
     public void setDescriere(String descriere) { this.descriere = descriere; }

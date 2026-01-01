@@ -9,6 +9,7 @@ export interface Task {
   dataLimita: string;
   idCreator: number;
   projectId: number;
+  projectName:string
 }
 
 

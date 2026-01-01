@@ -11,7 +11,9 @@ import {
 import type { Project } from "../../types/project";
 
 type Props = {
-  project: Project;
+  project: Project & {
+    editorUtilizator?: string; // 🔥 opțional, UX friendly
+  };
   onEdit: (p: Project) => void;
   onChangeStatus: (p: Project) => void;
   onDelete: (p: Project) => void;
@@ -49,14 +51,27 @@ export default function AdminProjectCard({
           </Badge>
 
           <Text fontSize="sm" color="gray.500">
-            Editor ID: {project.editorId}
+            Editor:{" "}
+            <strong>
+              {project.editorUtilizator
+                ? project.editorUtilizator
+                : `#${project.editorId}`}
+            </strong>
           </Text>
 
           <ButtonGroup size="sm" mt={2}>
-            <Button onClick={() => onEdit(project)}>Edit</Button>
-            <Button onClick={() => onChangeStatus(project)}>
-              Change Status
+            <Button colorScheme="blue" onClick={() => onEdit(project)}>
+              Edit
             </Button>
+
+            <Button
+              colorScheme="orange"
+              //variant="outline"
+              onClick={() => onChangeStatus(project)}
+            >
+              Status
+            </Button>
+
             <Button colorScheme="red" onClick={() => onDelete(project)}>
               Delete
             </Button>

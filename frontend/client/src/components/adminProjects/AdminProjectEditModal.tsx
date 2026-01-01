@@ -112,7 +112,7 @@ export default function AdminProjectEditModal({
             >
               {editors.map((e) => (
                 <option key={e.id} value={e.id}>
-                  {e.utilizator}
+                  {e.utilizator} (ID: {e.id})
                 </option>
               ))}
             </Select>

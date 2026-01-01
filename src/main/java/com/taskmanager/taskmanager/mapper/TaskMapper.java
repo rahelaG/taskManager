@@ -6,6 +6,8 @@ import com.taskmanager.taskmanager.entity.Task;
 public class TaskMapper {
 
     public static TaskResponse toResponse(Task task) {
+
+
         TaskResponse dto = new TaskResponse();
         dto.setId(task.getId());
         dto.setTitlu(task.getTitlu());
