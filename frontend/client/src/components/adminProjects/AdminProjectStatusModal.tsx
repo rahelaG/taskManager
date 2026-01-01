@@ -11,6 +11,7 @@ import {
 import { useEffect, useState } from "react";
 import { api } from "../../services/api";
 import type { Project } from "../../types/project";
+import { useToast } from "@chakra-ui/react";
 
 type Props = {
   project: Project | null;
@@ -29,6 +30,7 @@ export default function AdminProjectStatusModal({
 }: Props) {
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
+  const toast = useToast();
 
   // 🔹 sincronizare când se deschide modalul
   useEffect(() => {
@@ -43,15 +45,28 @@ export default function AdminProjectStatusModal({
     try {
       setLoading(true);
 
-      // 🔥 REQUEST CORECT
       await api.put(`/api/projects/${project.id}/status`, {
-        status: status,
+        status,
       });
 
-      onSaved(); // refresh list
-      onClose(); // close modal
+      toast({
+        title: "Status updated",
+        description: "Project status was updated successfully.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+
+      onSaved();
+      onClose();
     } catch (err) {
-      console.error("Failed to update project status", err);
+      toast({
+        title: "Error",
+        description: "Failed to update project status.",
+        status: "error",
+        duration: 4000,
+        isClosable: true,
+      });
     } finally {
       setLoading(false);
     }

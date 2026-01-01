@@ -11,9 +11,10 @@ import { BrowserRouter } from "react-router-dom";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <ChakraProvider theme={theme}>
-      <ColorModeScript initialColorMode={theme.config.initialColorMode} />
+    {/* 🔥 CORESPUNZĂTOR DOCUMENTAȚIEI CHAKRA */}
+    <ColorModeScript initialColorMode={theme.config.initialColorMode} />
 
+    <ChakraProvider theme={theme}>
       <AuthProvider>
         <BrowserRouter>
           <App />

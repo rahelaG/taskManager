@@ -16,6 +16,7 @@ import { useEffect, useState } from "react";
 import { api } from "../../services/api";
 import { useEditors } from "../../hooks/useEditors";
 import type { Project } from "../../types/project";
+import { useToast } from "@chakra-ui/react";
 
 type Props = {
   project: Project | null;
@@ -34,6 +35,7 @@ export default function AdminProjectEditModal({
   const [descriere, setDescriere] = useState("");
   const [editorId, setEditorId] = useState("");
   const [loading, setLoading] = useState(false);
+  const toast = useToast();
 
   const { editors, loading: editorsLoading } = useEditors();
 
@@ -57,10 +59,24 @@ export default function AdminProjectEditModal({
         editorId: Number(editorId),
       });
 
+      toast({
+        title: "Project updated",
+        description: "Changes were saved successfully.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+
       onSaved();
       onClose();
     } catch (err) {
-      console.error("Failed to update project", err);
+      toast({
+        title: "Error",
+        description: "Failed to update project.",
+        status: "error",
+        duration: 4000,
+        isClosable: true,
+      });
     } finally {
       setLoading(false);
     }
@@ -96,7 +112,7 @@ export default function AdminProjectEditModal({
             >
               {editors.map((e) => (
                 <option key={e.id} value={e.id}>
-                  {e.nume}
+                  {e.utilizator}
                 </option>
               ))}
             </Select>

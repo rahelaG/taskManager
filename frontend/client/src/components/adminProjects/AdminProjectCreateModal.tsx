@@ -15,6 +15,7 @@ import {
 import { useState } from "react";
 import { api } from "../../services/api";
 import { useEditors } from "../../hooks/useEditors";
+import { useToast } from "@chakra-ui/react";
 
 type Props = {
   isOpen: boolean;
@@ -31,6 +32,7 @@ export default function AdminProjectCreateModal({
   const [descriere, setDescriere] = useState("");
   const [editorId, setEditorId] = useState("");
   const [loading, setLoading] = useState(false);
+  const toast = useToast();
 
   const { editors, loading: editorsLoading } = useEditors();
 
@@ -44,6 +46,14 @@ export default function AdminProjectCreateModal({
         editorId: Number(editorId),
       });
 
+      toast({
+        title: "Project created",
+        description: "The project was created successfully.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+
       onCreated();
       onClose();
 
@@ -51,7 +61,13 @@ export default function AdminProjectCreateModal({
       setDescriere("");
       setEditorId("");
     } catch (err) {
-      console.error("Failed to create project", err);
+      toast({
+        title: "Error",
+        description: "Failed to create project.",
+        status: "error",
+        duration: 4000,
+        isClosable: true,
+      });
     } finally {
       setLoading(false);
     }
