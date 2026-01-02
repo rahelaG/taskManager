@@ -2,38 +2,41 @@ package com.taskmanager.taskmanager.controller.api;
 
 import com.taskmanager.taskmanager.dto.AdminCreateUserRequest;
 import com.taskmanager.taskmanager.dto.AdminDashboardResponse;
+import com.taskmanager.taskmanager.dto.EditorResponse;
 import com.taskmanager.taskmanager.entity.User;
-import com.taskmanager.taskmanager.entity.Task;
-import java.util.Comparator;
-import java.util.stream.Collectors;
-
+import com.taskmanager.taskmanager.exception.ForbiddenException;
 import com.taskmanager.taskmanager.service.TaskService;
 import com.taskmanager.taskmanager.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/admin")
-@PreAuthorize("hasRole('ADMIN')")
-public class AdminRestController {
+@RequestMapping("/api")
+public class UserRestController {
 
     private final UserService userService;
     private final TaskService taskService;
 
-    public AdminRestController(UserService userService, TaskService taskService) {
+    public UserRestController(UserService userService, TaskService taskService) {
         this.userService = userService;
         this.taskService = taskService;
     }
 
+    // =========================================================
+    // ADMIN – USERS CRUD (VECHI din AdminRestController)
+    // =========================================================
+
     // -------------------------
     // GET ALL USERS
     // -------------------------
-    @GetMapping("/users")
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/admin/users")
     public ResponseEntity<List<User>> getAllUsers() {
         return ResponseEntity.ok(userService.findAllUsers());
     }
@@ -41,7 +44,8 @@ public class AdminRestController {
     // -------------------------
     // GET USER BY ID
     // -------------------------
-    @GetMapping("/users/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/admin/users/{id}")
     public ResponseEntity<User> getUser(@PathVariable Long id) {
         User u = userService.findById(id);
         if (u == null) return ResponseEntity.notFound().build();
@@ -51,7 +55,8 @@ public class AdminRestController {
     // -------------------------
     // CREATE USER
     // -------------------------
-    @PostMapping("/users")
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/admin/users")
     public ResponseEntity<User> createUser(@Valid @RequestBody AdminCreateUserRequest req) {
 
         User user = new User();
@@ -66,7 +71,8 @@ public class AdminRestController {
     // -------------------------
     // UPDATE USER
     // -------------------------
-    @PutMapping("/users/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/admin/users/{id}")
     public ResponseEntity<User> updateUser(
             @PathVariable Long id,
             @RequestBody User newUserData
@@ -78,7 +84,8 @@ public class AdminRestController {
     // -------------------------
     // DELETE USER
     // -------------------------
-    @DeleteMapping("/users/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/admin/users/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
         return ResponseEntity.ok("User deleted successfully");
@@ -87,7 +94,8 @@ public class AdminRestController {
     // -------------------------
     // RESET PASSWORD
     // -------------------------
-    @PutMapping("/users/{id}/password")
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/admin/users/{id}/password")
     public ResponseEntity<?> resetPassword(
             @PathVariable Long id,
             @RequestBody Map<String, String> req
@@ -106,11 +114,11 @@ public class AdminRestController {
         return ResponseEntity.ok("Password updated successfully");
     }
 
-
-    // -------------------------
-    //  DASHBOARD
-    // -------------------------
-    @GetMapping("/dashboard")
+    // =========================================================
+    // ADMIN – DASHBOARD (VECHI din AdminRestController)
+    // =========================================================
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/admin/dashboard")
     public ResponseEntity<AdminDashboardResponse> getDashboardStats() {
 
         List<User> users = userService.findAllUsers();
@@ -142,9 +150,37 @@ public class AdminRestController {
         response.setLatestUsers(latest);
 
         return ResponseEntity.ok(response);
+    }
 
+    // =========================================================
+    // ADMIN – GET EDITORS (VECHI din UserAdminRestController)
+    // =========================================================
+    @GetMapping("/users/editors")
+    public List<EditorResponse> getEditors(Authentication authentication) {
 
-}
+        String role = authentication.getAuthorities()
+                .iterator()
+                .next()
+                .getAuthority();
 
+        if (!"ROLE_ADMIN".equals(role)) {
+            throw new ForbiddenException("Only admins can view editors");
+        }
 
+        return userService.findEditors()
+                .stream()
+                .map(user -> new EditorResponse(
+                        user.getId(),
+                        user.getUtilizator()
+                ))
+                .toList();
+    }
+
+    // =========================================================
+    // VIEW – USERS LIST (VECHI din UserViewRestController)
+    // =========================================================
+    @GetMapping("/users/all")
+    public List<User> getAllUsersView() {
+        return userService.findAllUsers();
+    }
 }
