@@ -23,7 +23,6 @@ public class AuthRestController {
     @GetMapping("/me")
     public ResponseEntity<AuthResponse> getCurrentUser(Authentication authentication) {
 
-        // dacă nu e logat sau e anonim -> 401
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }

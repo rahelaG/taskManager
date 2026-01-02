@@ -28,22 +28,16 @@ public class UserRestController {
         this.taskService = taskService;
     }
 
-    // =========================================================
     // ADMIN – USERS CRUD (VECHI din AdminRestController)
-    // =========================================================
 
-    // -------------------------
     // GET ALL USERS
-    // -------------------------
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin/users")
     public ResponseEntity<List<User>> getAllUsers() {
         return ResponseEntity.ok(userService.findAllUsers());
     }
 
-    // -------------------------
     // GET USER BY ID
-    // -------------------------
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin/users/{id}")
     public ResponseEntity<User> getUser(@PathVariable Long id) {
@@ -52,9 +46,7 @@ public class UserRestController {
         return ResponseEntity.ok(u);
     }
 
-    // -------------------------
     // CREATE USER
-    // -------------------------
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/admin/users")
     public ResponseEntity<User> createUser(@Valid @RequestBody AdminCreateUserRequest req) {
@@ -68,9 +60,7 @@ public class UserRestController {
         return ResponseEntity.ok(userService.saveUser(user));
     }
 
-    // -------------------------
     // UPDATE USER
-    // -------------------------
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/admin/users/{id}")
     public ResponseEntity<User> updateUser(
@@ -81,9 +71,7 @@ public class UserRestController {
         return ResponseEntity.ok(userService.updateUser(newUserData));
     }
 
-    // -------------------------
     // DELETE USER
-    // -------------------------
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/admin/users/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable Long id) {
@@ -91,9 +79,7 @@ public class UserRestController {
         return ResponseEntity.ok("User deleted successfully");
     }
 
-    // -------------------------
     // RESET PASSWORD
-    // -------------------------
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/admin/users/{id}/password")
     public ResponseEntity<?> resetPassword(
@@ -114,9 +100,7 @@ public class UserRestController {
         return ResponseEntity.ok("Password updated successfully");
     }
 
-    // =========================================================
-    // ADMIN – DASHBOARD (VECHI din AdminRestController)
-    // =========================================================
+    // ADMIN – DASHBOARD
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin/dashboard")
     public ResponseEntity<AdminDashboardResponse> getDashboardStats() {
@@ -152,9 +136,7 @@ public class UserRestController {
         return ResponseEntity.ok(response);
     }
 
-    // =========================================================
-    // ADMIN – GET EDITORS (VECHI din UserAdminRestController)
-    // =========================================================
+    // ADMIN – GET EDITORS
     @GetMapping("/users/editors")
     public List<EditorResponse> getEditors(Authentication authentication) {
 
@@ -176,9 +158,7 @@ public class UserRestController {
                 .toList();
     }
 
-    // =========================================================
-    // VIEW – USERS LIST (VECHI din UserViewRestController)
-    // =========================================================
+    // VIEW – USERS LIST
     @GetMapping("/users/all")
     public List<User> getAllUsersView() {
         return userService.findAllUsers();

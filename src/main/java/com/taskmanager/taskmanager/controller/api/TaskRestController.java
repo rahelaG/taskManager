@@ -37,9 +37,7 @@ public class TaskRestController {
         this.userService = userService;
     }
 
-    // =========================
     // USER – task-urile lui
-    // =========================
     @GetMapping("/tasks")
     public List<TaskResponse> getUserTasks(
             @RequestParam(required = false) String status,
@@ -56,9 +54,7 @@ public class TaskRestController {
         );
     }
 
-    // =========================
     // EDITOR – task-uri (ADMIN INTERZIS)
-    // =========================
     @GetMapping("/editor/tasks")
     public List<TaskResponse> getEditorTasks(
             @RequestParam(required = false) String status,
@@ -83,9 +79,7 @@ public class TaskRestController {
         );
     }
 
-    // =========================
     // CREATE TASK (EDITOR ONLY + PROJECT ACTIVE)
-    // =========================
     @PostMapping("/editor/tasks")
     public TaskResponse createTask(
             @Valid @RequestBody TaskRequest dto,
@@ -125,9 +119,7 @@ public class TaskRestController {
         return TaskMapper.toResponse(taskService.save(task));
     }
 
-    // =========================
     // EDITOR – GET TASK BY ID
-    // =========================
     @GetMapping("/editor/tasks/{id}")
     public ResponseEntity<TaskResponse> getEditorTaskById(
             @PathVariable Long id,
@@ -150,13 +142,10 @@ public class TaskRestController {
             throw new ForbiddenException("You are not allowed to access this task");
         }
 
-        // 🔹 NOT CHANGED
         return ResponseEntity.ok(TaskMapper.toResponse(task));
     }
 
-    // =========================
     // EDITOR – UPDATE TASK (PROJECT ACTIVE)
-    // =========================
     @PutMapping("/editor/tasks/{id}")
     public TaskResponse updateTask(
             @PathVariable Long id,
@@ -195,9 +184,7 @@ public class TaskRestController {
         return TaskMapper.toResponse(taskService.update(existing));
     }
 
-    // =========================
     // EDITOR – DELETE TASK (PROJECT ACTIVE)
-    // =========================
     @DeleteMapping("/editor/tasks/{id}")
     public void deleteTask(
             @PathVariable Long id,
@@ -226,4 +213,38 @@ public class TaskRestController {
 
         taskService.delete(id);
     }
+
+// EDITOR – ASSIGN TASK TO USER
+    @PostMapping("/editor/tasks/{id}/assign")
+    public TaskResponse assignTask(
+            @PathVariable Long id,
+            @RequestParam Long userId,
+            Authentication authentication
+    ) {
+        Task task = taskService.findById(id);
+        if (task == null) {
+            throw new RuntimeException("Task not found");
+        }
+
+        User editor = userService.findByUsername(authentication.getName());
+
+        ProjectResponse project = projectService.getProjectById(
+                task.getProjectId(),
+                editor.getId(),
+                editor.getRol()
+        );
+
+        if (project == null) {
+            throw new ForbiddenException("You are not allowed to assign this task");
+        }
+
+        if (ProjectStatus.ARCHIVED.name().equals(project.getStatus())) {
+            throw new ForbiddenException("Cannot assign tasks in an archived project");
+        }
+
+        task.setIdCreator(userId);
+
+        return TaskMapper.toResponse(taskService.update(task));
+    }
+
 }

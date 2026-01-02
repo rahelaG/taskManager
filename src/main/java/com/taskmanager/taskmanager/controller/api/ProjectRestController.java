@@ -81,9 +81,7 @@ public class ProjectRestController {
         return ResponseEntity.ok(project);
     }
 
-    // =========================
 // ADMIN – update proiect
-// =========================
     @PutMapping("/{id}")
     public ResponseEntity<ProjectResponse> updateProject(
             @PathVariable Long id,
@@ -117,9 +115,7 @@ public class ProjectRestController {
         );
     }
 
-    // =========================
 // ADMIN – delete proiect
-// =========================
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProject(
             @PathVariable Long id,
