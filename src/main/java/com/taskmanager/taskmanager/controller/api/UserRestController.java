@@ -1,10 +1,9 @@
 package com.taskmanager.taskmanager.controller.api;
 
-import com.taskmanager.taskmanager.dto.AdminCreateUserRequest;
-import com.taskmanager.taskmanager.dto.AdminDashboardResponse;
-import com.taskmanager.taskmanager.dto.EditorResponse;
+import com.taskmanager.taskmanager.dto.*;
 import com.taskmanager.taskmanager.entity.User;
 import com.taskmanager.taskmanager.exception.ForbiddenException;
+import com.taskmanager.taskmanager.mapper.UserMapper;
 import com.taskmanager.taskmanager.service.TaskService;
 import com.taskmanager.taskmanager.service.UserService;
 import jakarta.validation.Valid;
@@ -28,50 +27,55 @@ public class UserRestController {
         this.taskService = taskService;
     }
 
-    // ADMIN – USERS CRUD (VECHI din AdminRestController)
+    // ADMIN – USERS CRUD
 
-    // GET ALL USERS
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin/users")
-    public ResponseEntity<List<User>> getAllUsers() {
-        return ResponseEntity.ok(userService.findAllUsers());
+    public ResponseEntity<List<UserResponse>> getAllUsers() {
+        return ResponseEntity.ok(
+                userService.findAllUsers()
+                        .stream()
+                        .map(UserMapper::toResponse)
+                        .toList()
+        );
     }
 
-    // GET USER BY ID
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin/users/{id}")
-    public ResponseEntity<User> getUser(@PathVariable Long id) {
+    public ResponseEntity<UserResponse> getUser(@PathVariable Long id) {
         User u = userService.findById(id);
         if (u == null) return ResponseEntity.notFound().build();
-        return ResponseEntity.ok(u);
+        return ResponseEntity.ok(UserMapper.toResponse(u));
     }
 
-    // CREATE USER
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/admin/users")
-    public ResponseEntity<User> createUser(@Valid @RequestBody AdminCreateUserRequest req) {
-
+    public ResponseEntity<UserResponse> createUser(
+            @Valid @RequestBody AdminCreateUserRequest req
+    ) {
         User user = new User();
         user.setNume(req.getNume());
         user.setUtilizator(req.getUtilizator());
         user.setParola(req.getParola());
         user.setRol(req.getRol());
 
-        return ResponseEntity.ok(userService.saveUser(user));
+        return ResponseEntity.ok(
+                UserMapper.toResponse(userService.saveUser(user))
+        );
     }
 
-    // UPDATE USER
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/admin/users/{id}")
-    public ResponseEntity<User> updateUser(
+    public ResponseEntity<UserResponse> updateUser(
             @PathVariable Long id,
             @RequestBody User newUserData
     ) {
         newUserData.setId(id);
-        return ResponseEntity.ok(userService.updateUser(newUserData));
+        return ResponseEntity.ok(
+                UserMapper.toResponse(userService.updateUser(newUserData))
+        );
     }
 
-    // DELETE USER
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/admin/users/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable Long id) {
@@ -79,7 +83,6 @@ public class UserRestController {
         return ResponseEntity.ok("User deleted successfully");
     }
 
-    // RESET PASSWORD
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/admin/users/{id}/password")
     public ResponseEntity<?> resetPassword(
@@ -101,23 +104,19 @@ public class UserRestController {
     }
 
     // ADMIN – DASHBOARD
+
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin/dashboard")
     public ResponseEntity<AdminDashboardResponse> getDashboardStats() {
-
         List<User> users = userService.findAllUsers();
         AdminDashboardResponse response = new AdminDashboardResponse();
 
-        // total users
         response.setTotalUsers(users.size());
-
-        // count by role
         response.setUsersRoleUser((int) users.stream().filter(u -> "ROLE_USER".equals(u.getRol())).count());
         response.setUsersRoleEditor((int) users.stream().filter(u -> "ROLE_EDITOR".equals(u.getRol())).count());
         response.setUsersRoleAdmin((int) users.stream().filter(u -> "ROLE_ADMIN".equals(u.getRol())).count());
 
-        // last 5 users by ID desc (fără dată înregistrare)
-        List<AdminDashboardResponse.LatestUser> latest =
+        response.setLatestUsers(
                 users.stream()
                         .sorted((a, b) -> b.getId().compareTo(a.getId()))
                         .limit(5)
@@ -129,14 +128,14 @@ public class UserRestController {
                             dto.setRol(u.getRol());
                             return dto;
                         })
-                        .toList();
-
-        response.setLatestUsers(latest);
+                        .toList()
+        );
 
         return ResponseEntity.ok(response);
     }
 
-    // ADMIN – GET EDITORS
+    // ADMIN – EDITORS
+
     @GetMapping("/users/editors")
     public List<EditorResponse> getEditors(Authentication authentication) {
 
@@ -158,9 +157,14 @@ public class UserRestController {
                 .toList();
     }
 
-    // VIEW – USERS LIST
+
+    // VIEW – USERS
+
     @GetMapping("/users/all")
-    public List<User> getAllUsersView() {
-        return userService.findAllUsers();
+    public List<UserResponse> getAllUsersView() {
+        return userService.findAllUsers()
+                .stream()
+                .map(UserMapper::toResponse)
+                .toList();
     }
 }
