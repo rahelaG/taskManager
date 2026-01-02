@@ -27,29 +27,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // -------------------------
-  // FETCH USER LOGAT
-  // -------------------------
-  const fetchCurrentUser = async (): Promise<User | null> => {
-    try {
-      const response = await api.get("/api/auth/me");
-      setUser(response.data);
-      return response.data;
-    } catch {
-      setUser(null);
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // =========================
+  // FETCH CURRENT USER (ONCE)
+  // =========================
   useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const res = await api.get("/api/auth/me");
+        setUser(res.data);
+      } catch {
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchCurrentUser();
   }, []);
 
-  // -------------------------
+  // =========================
   // LOGIN
-  // -------------------------
+  // =========================
   const login = async (
     username: string,
     password: string
@@ -59,23 +57,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       params.append("username", username);
       params.append("password", password);
 
-      // TRIMITE Direct la backend (fără /api)
       await api.post("/do-login", params, {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
       });
 
-      return await fetchCurrentUser();
+      const res = await api.get("/api/auth/me");
+      setUser(res.data);
+      return res.data;
     } catch {
       return null;
     }
   };
 
-  // -------------------------
+  // =========================
   // LOGOUT
-  // -------------------------
+  // =========================
   const logout = async () => {
     try {
-      await api.post("/api/auth/logout");
+      await api.post("/logout");
     } finally {
       setUser(null);
     }

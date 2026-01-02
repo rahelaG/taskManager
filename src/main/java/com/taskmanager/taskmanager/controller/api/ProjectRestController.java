@@ -27,13 +27,18 @@ public class ProjectRestController {
         this.userService = userService;
     }
 
-    // ADMIN – creeaza proiect si asigneaza editor
+    // =========================
+    // ADMIN – CREATE PROJECT
+    // =========================
     @PostMapping
     public ResponseEntity<ProjectResponse> createProject(
             @Valid @RequestBody ProjectRequest request,
             Authentication authentication
     ) {
-        String role = authentication.getAuthorities().iterator().next().getAuthority();
+        String role = authentication.getAuthorities()
+                .iterator()
+                .next()
+                .getAuthority();
 
         if (!"ROLE_ADMIN".equals(role)) {
             throw new ForbiddenException("Only admins can create projects");
@@ -42,69 +47,88 @@ public class ProjectRestController {
         return ResponseEntity.ok(projectService.createProject(request));
     }
 
-    // ADMIN – vede toate proiectele
-    // EDITOR – vede doar proiectele lui
+    // =========================
+    // ADMIN – ALL PROJECTS
+    // EDITOR – OWN PROJECTS
+    // =========================
     @GetMapping
-    public ResponseEntity<List<ProjectResponse>> getProjects(Authentication authentication) {
+    public ResponseEntity<List<ProjectResponse>> getProjects(
+            Authentication authentication
+    ) {
+        User user = userService.findByUtilizator(authentication.getName());
 
-        String username = authentication.getName();
-        User user = userService.findByUsername(username);
-        String role = user.getRol();
-
-        if ("ROLE_ADMIN".equals(role)) {
+        if ("ROLE_ADMIN".equals(user.getRol())) {
             return ResponseEntity.ok(projectService.findAllProjects());
         }
 
-        if ("ROLE_EDITOR".equals(role)) {
-            return ResponseEntity.ok(projectService.findProjectsForEditor(user.getId()));
+        if ("ROLE_EDITOR".equals(user.getRol())) {
+            return ResponseEntity.ok(
+                    projectService.findProjectsForEditor(user.getId())
+            );
         }
 
         throw new ForbiddenException("Only admins and editors can view projects");
     }
 
-    // ADMIN / EDITOR – detalii proiect
+    // =========================
+    // ADMIN / EDITOR – PROJECT DETAILS
+    // =========================
     @GetMapping("/{id}")
     public ResponseEntity<ProjectResponse> getProjectById(
             @PathVariable Long id,
             Authentication authentication
     ) {
-        String username = authentication.getName();
-        User user = userService.findByUsername(username);
-        String role = user.getRol();
+        User user = userService.findByUtilizator(authentication.getName());
 
-        ProjectResponse project = projectService.getProjectById(id, user.getId(), role);
+        ProjectResponse project = projectService.getProjectById(
+                id,
+                user.getId(),
+                user.getRol()
+        );
 
         if (project == null) {
-            return ResponseEntity.status(404).build();
+            return ResponseEntity.notFound().build();
         }
 
         return ResponseEntity.ok(project);
     }
 
-// ADMIN – update proiect
+    // =========================
+    // ADMIN – UPDATE PROJECT
+    // =========================
     @PutMapping("/{id}")
     public ResponseEntity<ProjectResponse> updateProject(
             @PathVariable Long id,
             @Valid @RequestBody ProjectRequest request,
             Authentication authentication
     ) {
-        String role = authentication.getAuthorities().iterator().next().getAuthority();
+        String role = authentication.getAuthorities()
+                .iterator()
+                .next()
+                .getAuthority();
 
         if (!"ROLE_ADMIN".equals(role)) {
             throw new ForbiddenException("Only admins can update projects");
         }
 
-        return ResponseEntity.ok(projectService.updateProject(id, request));
+        return ResponseEntity.ok(
+                projectService.updateProject(id, request)
+        );
     }
 
-
+    // =========================
+    // ADMIN – UPDATE STATUS
+    // =========================
     @PutMapping("/{id}/status")
     public ResponseEntity<ProjectResponse> updateProjectStatus(
             @PathVariable Long id,
             @RequestBody ProjectStatusRequest request,
             Authentication authentication
     ) {
-        String role = authentication.getAuthorities().iterator().next().getAuthority();
+        String role = authentication.getAuthorities()
+                .iterator()
+                .next()
+                .getAuthority();
 
         if (!"ROLE_ADMIN".equals(role)) {
             throw new ForbiddenException("Only admins can update project status");
@@ -115,13 +139,18 @@ public class ProjectRestController {
         );
     }
 
-// ADMIN – delete proiect
+    // =========================
+    // ADMIN – DELETE PROJECT
+    // =========================
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProject(
             @PathVariable Long id,
             Authentication authentication
     ) {
-        String role = authentication.getAuthorities().iterator().next().getAuthority();
+        String role = authentication.getAuthorities()
+                .iterator()
+                .next()
+                .getAuthority();
 
         if (!"ROLE_ADMIN".equals(role)) {
             throw new ForbiddenException("Only admins can delete projects");
@@ -130,7 +159,4 @@ public class ProjectRestController {
         projectService.deleteProject(id);
         return ResponseEntity.noContent().build();
     }
-
-
-
 }

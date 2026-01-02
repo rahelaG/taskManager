@@ -1,27 +1,30 @@
 package com.taskmanager.taskmanager.service;
 
+import com.taskmanager.taskmanager.dto.*;
 import com.taskmanager.taskmanager.entity.User;
 
 import java.util.List;
 
 public interface UserService {
 
-    User findByUsername(String username);
-
-    Long getUserIdByUsername(String username);
+    User getById(Long id);
 
     List<User> findAllUsers();
 
-    User saveUser(User user);
+    User createUser(AdminCreateUserRequest req);
 
-    User updateUser(User user);
+    User updateUser(Long id, UserUpdateRequest req);
 
     void deleteUser(Long id);
-
-    User findById(Long id);
 
     void changePassword(Long id, String newPassword);
 
     List<User> findEditors();
+
+    AdminDashboardResponse getAdminDashboard();
+
+    User findByUtilizator(String utilizator);
+    void registerUser(RegisterRequest req);
+
 
 }

@@ -28,7 +28,8 @@ public class AuthRestController {
         }
 
         String username = authentication.getName(); // acesta e "utilizator" din baza ta
-        User user = userService.findByUsername(username);
+        User user = userService.findByUtilizator(username);
+
 
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();

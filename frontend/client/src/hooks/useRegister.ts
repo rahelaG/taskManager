@@ -15,25 +15,28 @@ export function useRegister() {
   const registerUser = async (values: RegisterFormValues) => {
     try {
       await api.post("/api/register", values);
+ // ✅ endpoint corect
 
       toast({
-        title: "Account created!",
+        title: "Account created",
+        description: "You can now log in",
         status: "success",
         duration: 2500,
+        isClosable: true,
       });
 
       navigate("/login", { replace: true });
-    } catch {
+    } catch (err: any) {
       toast({
         title: "Register failed",
-        description: "Try again.",
+        description:
+          err?.response?.data?.error || "Please try again",
         status: "error",
         duration: 3000,
+        isClosable: true,
       });
     }
   };
 
-  return {
-    registerUser,
-  };
+  return { registerUser };
 }

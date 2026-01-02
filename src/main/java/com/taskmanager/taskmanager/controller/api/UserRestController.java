@@ -1,10 +1,7 @@
 package com.taskmanager.taskmanager.controller.api;
 
 import com.taskmanager.taskmanager.dto.*;
-import com.taskmanager.taskmanager.entity.User;
-import com.taskmanager.taskmanager.exception.ForbiddenException;
 import com.taskmanager.taskmanager.mapper.UserMapper;
-import com.taskmanager.taskmanager.service.TaskService;
 import com.taskmanager.taskmanager.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -20,145 +17,90 @@ import java.util.Map;
 public class UserRestController {
 
     private final UserService userService;
-    private final TaskService taskService;
 
-    public UserRestController(UserService userService, TaskService taskService) {
+    public UserRestController(UserService userService) {
         this.userService = userService;
-        this.taskService = taskService;
     }
 
+    // =========================
     // ADMIN – USERS CRUD
+    // =========================
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin/users")
-    public ResponseEntity<List<UserResponse>> getAllUsers() {
-        return ResponseEntity.ok(
-                userService.findAllUsers()
-                        .stream()
-                        .map(UserMapper::toResponse)
-                        .toList()
-        );
+    public List<UserResponse> getAllUsers() {
+        return userService.findAllUsers()
+                .stream()
+                .map(UserMapper::toResponse)
+                .toList();
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin/users/{id}")
-    public ResponseEntity<UserResponse> getUser(@PathVariable Long id) {
-        User u = userService.findById(id);
-        if (u == null) return ResponseEntity.notFound().build();
-        return ResponseEntity.ok(UserMapper.toResponse(u));
+    public UserResponse getUser(@PathVariable Long id) {
+        return UserMapper.toResponse(userService.getById(id));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/admin/users")
-    public ResponseEntity<UserResponse> createUser(
+    public UserResponse createUser(
             @Valid @RequestBody AdminCreateUserRequest req
     ) {
-        User user = new User();
-        user.setNume(req.getNume());
-        user.setUtilizator(req.getUtilizator());
-        user.setParola(req.getParola());
-        user.setRol(req.getRol());
-
-        return ResponseEntity.ok(
-                UserMapper.toResponse(userService.saveUser(user))
-        );
+        return UserMapper.toResponse(userService.createUser(req));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/admin/users/{id}")
-    public ResponseEntity<UserResponse> updateUser(
+    public UserResponse updateUser(
             @PathVariable Long id,
-            @RequestBody User newUserData
+            @RequestBody UserUpdateRequest req
     ) {
-        newUserData.setId(id);
-        return ResponseEntity.ok(
-                UserMapper.toResponse(userService.updateUser(newUserData))
-        );
+        return UserMapper.toResponse(userService.updateUser(id, req));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/admin/users/{id}")
-    public ResponseEntity<String> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
-        return ResponseEntity.ok("User deleted successfully");
+        return ResponseEntity.noContent().build();
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/admin/users/{id}/password")
-    public ResponseEntity<?> resetPassword(
+    public ResponseEntity<Void> resetPassword(
             @PathVariable Long id,
             @RequestBody Map<String, String> req
     ) {
-        String newPassword = req.get("newPassword");
-
-        if (newPassword == null || newPassword.isBlank()) {
-            return ResponseEntity.badRequest().body(Map.of("newPassword", "Password cannot be empty"));
-        }
-
-        if (newPassword.length() < 6) {
-            return ResponseEntity.badRequest().body(Map.of("newPassword", "Password must be at least 6 characters long"));
-        }
-
-        userService.changePassword(id, newPassword);
-        return ResponseEntity.ok("Password updated successfully");
+        userService.changePassword(id, req.get("newPassword"));
+        return ResponseEntity.ok().build();
     }
 
+    // =========================
     // ADMIN – DASHBOARD
+    // =========================
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin/dashboard")
-    public ResponseEntity<AdminDashboardResponse> getDashboardStats() {
-        List<User> users = userService.findAllUsers();
-        AdminDashboardResponse response = new AdminDashboardResponse();
-
-        response.setTotalUsers(users.size());
-        response.setUsersRoleUser((int) users.stream().filter(u -> "ROLE_USER".equals(u.getRol())).count());
-        response.setUsersRoleEditor((int) users.stream().filter(u -> "ROLE_EDITOR".equals(u.getRol())).count());
-        response.setUsersRoleAdmin((int) users.stream().filter(u -> "ROLE_ADMIN".equals(u.getRol())).count());
-
-        response.setLatestUsers(
-                users.stream()
-                        .sorted((a, b) -> b.getId().compareTo(a.getId()))
-                        .limit(5)
-                        .map(u -> {
-                            AdminDashboardResponse.LatestUser dto = new AdminDashboardResponse.LatestUser();
-                            dto.setId(u.getId());
-                            dto.setNume(u.getNume());
-                            dto.setUtilizator(u.getUtilizator());
-                            dto.setRol(u.getRol());
-                            return dto;
-                        })
-                        .toList()
-        );
-
-        return ResponseEntity.ok(response);
+    public AdminDashboardResponse getDashboardStats() {
+        return userService.getAdminDashboard();
     }
 
+    // =========================
     // ADMIN – EDITORS
+    // =========================
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/users/editors")
-    public List<EditorResponse> getEditors(Authentication authentication) {
-
-        String role = authentication.getAuthorities()
-                .iterator()
-                .next()
-                .getAuthority();
-
-        if (!"ROLE_ADMIN".equals(role)) {
-            throw new ForbiddenException("Only admins can view editors");
-        }
-
+    public List<EditorResponse> getEditors() {
         return userService.findEditors()
                 .stream()
-                .map(user -> new EditorResponse(
-                        user.getId(),
-                        user.getUtilizator()
-                ))
+                .map(u -> new EditorResponse(u.getId(), u.getUtilizator()))
                 .toList();
     }
 
-
+    // =========================
     // VIEW – USERS
+    // =========================
 
     @GetMapping("/users/all")
     public List<UserResponse> getAllUsersView() {

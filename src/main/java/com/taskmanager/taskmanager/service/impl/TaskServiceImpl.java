@@ -1,11 +1,11 @@
 package com.taskmanager.taskmanager.service.impl;
 
-import com.taskmanager.taskmanager.dto.ProjectResponse; // 🔹 ADDED
-import com.taskmanager.taskmanager.dto.TaskResponse;    // 🔹 ADDED
+import com.taskmanager.taskmanager.dto.ProjectResponse;
+import com.taskmanager.taskmanager.dto.TaskResponse;
 import com.taskmanager.taskmanager.entity.Task;
 import com.taskmanager.taskmanager.entity.User;
 import com.taskmanager.taskmanager.exception.ForbiddenException;
-import com.taskmanager.taskmanager.mapper.TaskMapper;   // 🔹 ADDED
+import com.taskmanager.taskmanager.mapper.TaskMapper;
 import com.taskmanager.taskmanager.repository.TaskRepository;
 import com.taskmanager.taskmanager.service.ProjectService;
 import com.taskmanager.taskmanager.service.TaskService;
@@ -41,7 +41,8 @@ public class TaskServiceImpl implements TaskService {
             String categorie,
             String username
     ) {
-        Long userId = userService.getUserIdByUsername(username);
+        User user = userService.findByUtilizator(username);
+        Long userId = user.getId();
 
         return taskRepository.filterTasksForUser(
                 normalize(status),
@@ -51,7 +52,7 @@ public class TaskServiceImpl implements TaskService {
         );
     }
 
-    // 🔹 ADDED – USER tasks with project name
+    // USER – TaskResponse cu projectName
     @Override
     public List<TaskResponse> getUserTaskResponses(
             String status,
@@ -76,7 +77,7 @@ public class TaskServiceImpl implements TaskService {
             Long projectId,
             String username
     ) {
-        User user = userService.findByUsername(username);
+        User user = userService.findByUtilizator(username);
 
         if ("ROLE_ADMIN".equals(user.getRol())) {
             throw new ForbiddenException("Admins are not allowed to access tasks");
@@ -104,7 +105,7 @@ public class TaskServiceImpl implements TaskService {
         );
     }
 
-    // 🔹 ADDED – EDITOR tasks with project name
+    // EDITOR – TaskResponse cu projectName
     @Override
     public List<TaskResponse> getEditorTaskResponses(
             String status,
@@ -164,7 +165,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     // =========================
-    // 🔹 ADDED – HELPER
+    // HELPER – map Task → TaskResponse + projectName
     // =========================
     private TaskResponse mapWithProjectName(Task task) {
         TaskResponse dto = TaskMapper.toResponse(task);
@@ -184,7 +185,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     // =========================
-    // HELPER EXISTENT
+    // HELPER
     // =========================
     private String normalize(String value) {
         return (value == null || value.isBlank()) ? null : value;

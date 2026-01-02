@@ -37,7 +37,9 @@ public class TaskRestController {
         this.userService = userService;
     }
 
+    // =========================
     // USER – task-urile lui
+    // =========================
     @GetMapping("/tasks")
     public List<TaskResponse> getUserTasks(
             @RequestParam(required = false) String status,
@@ -45,7 +47,6 @@ public class TaskRestController {
             @RequestParam(required = false) String categorie,
             Authentication authentication
     ) {
-        // 🔹 CHANGED: folosim metoda care întoarce TaskResponse cu projectName
         return taskService.getUserTaskResponses(
                 status,
                 prioritate,
@@ -54,7 +55,9 @@ public class TaskRestController {
         );
     }
 
-    // EDITOR – task-uri (ADMIN INTERZIS)
+    // =========================
+    // EDITOR – task-uri
+    // =========================
     @GetMapping("/editor/tasks")
     public List<TaskResponse> getEditorTasks(
             @RequestParam(required = false) String status,
@@ -63,13 +66,12 @@ public class TaskRestController {
             @RequestParam(required = false) Long projectId,
             Authentication authentication
     ) {
-        User editor = userService.findByUsername(authentication.getName());
+        User editor = userService.findByUtilizator(authentication.getName());
 
         if ("ROLE_ADMIN".equals(editor.getRol())) {
             throw new ForbiddenException("Admins are not allowed to access tasks");
         }
 
-        // 🔹 CHANGED: folosim metoda care întoarce TaskResponse cu projectName
         return taskService.getEditorTaskResponses(
                 status,
                 prioritate,
@@ -79,13 +81,15 @@ public class TaskRestController {
         );
     }
 
-    // CREATE TASK (EDITOR ONLY + PROJECT ACTIVE)
+    // =========================
+    // CREATE TASK
+    // =========================
     @PostMapping("/editor/tasks")
     public TaskResponse createTask(
             @Valid @RequestBody TaskRequest dto,
             Authentication authentication
     ) {
-        User editor = userService.findByUsername(authentication.getName());
+        User editor = userService.findByUtilizator(authentication.getName());
 
         if ("ROLE_ADMIN".equals(editor.getRol())) {
             throw new ForbiddenException("Admins cannot create tasks");
@@ -115,11 +119,12 @@ public class TaskRestController {
         task.setProjectId(dto.getProjectId());
         task.setDataCreare(LocalDate.now());
 
-        // 🔹 NOT CHANGED: aici e OK fără projectName (nu e nevoie imediat)
         return TaskMapper.toResponse(taskService.save(task));
     }
 
-    // EDITOR – GET TASK BY ID
+    // =========================
+    // GET TASK BY ID
+    // =========================
     @GetMapping("/editor/tasks/{id}")
     public ResponseEntity<TaskResponse> getEditorTaskById(
             @PathVariable Long id,
@@ -130,7 +135,7 @@ public class TaskRestController {
             return ResponseEntity.notFound().build();
         }
 
-        User editor = userService.findByUsername(authentication.getName());
+        User editor = userService.findByUtilizator(authentication.getName());
 
         ProjectResponse project = projectService.getProjectById(
                 task.getProjectId(),
@@ -145,7 +150,9 @@ public class TaskRestController {
         return ResponseEntity.ok(TaskMapper.toResponse(task));
     }
 
-    // EDITOR – UPDATE TASK (PROJECT ACTIVE)
+    // =========================
+    // UPDATE TASK
+    // =========================
     @PutMapping("/editor/tasks/{id}")
     public TaskResponse updateTask(
             @PathVariable Long id,
@@ -157,7 +164,7 @@ public class TaskRestController {
             throw new RuntimeException("Task not found");
         }
 
-        User editor = userService.findByUsername(authentication.getName());
+        User editor = userService.findByUtilizator(authentication.getName());
 
         ProjectResponse project = projectService.getProjectById(
                 existing.getProjectId(),
@@ -180,11 +187,12 @@ public class TaskRestController {
         existing.setCategorie(dto.getCategorie());
         existing.setDataLimita(dto.getDataLimita());
 
-        // 🔹 NOT CHANGED
         return TaskMapper.toResponse(taskService.update(existing));
     }
 
-    // EDITOR – DELETE TASK (PROJECT ACTIVE)
+    // =========================
+    // DELETE TASK
+    // =========================
     @DeleteMapping("/editor/tasks/{id}")
     public void deleteTask(
             @PathVariable Long id,
@@ -195,7 +203,7 @@ public class TaskRestController {
             throw new RuntimeException("Task not found");
         }
 
-        User editor = userService.findByUsername(authentication.getName());
+        User editor = userService.findByUtilizator(authentication.getName());
 
         ProjectResponse project = projectService.getProjectById(
                 task.getProjectId(),
@@ -214,7 +222,9 @@ public class TaskRestController {
         taskService.delete(id);
     }
 
-// EDITOR – ASSIGN TASK TO USER
+    // =========================
+    // ASSIGN TASK
+    // =========================
     @PostMapping("/editor/tasks/{id}/assign")
     public TaskResponse assignTask(
             @PathVariable Long id,
@@ -226,7 +236,7 @@ public class TaskRestController {
             throw new RuntimeException("Task not found");
         }
 
-        User editor = userService.findByUsername(authentication.getName());
+        User editor = userService.findByUtilizator(authentication.getName());
 
         ProjectResponse project = projectService.getProjectById(
                 task.getProjectId(),
@@ -246,5 +256,4 @@ public class TaskRestController {
 
         return TaskMapper.toResponse(taskService.update(task));
     }
-
 }

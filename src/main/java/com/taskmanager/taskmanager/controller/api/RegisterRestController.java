@@ -1,7 +1,6 @@
 package com.taskmanager.taskmanager.controller.api;
 
 import com.taskmanager.taskmanager.dto.RegisterRequest;
-import com.taskmanager.taskmanager.entity.User;
 import com.taskmanager.taskmanager.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -18,17 +17,10 @@ public class RegisterRestController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser( @Valid @RequestBody RegisterRequest request) {
-
-        // mapăm DTO → ENTITY
-        User user = new User();
-        user.setNume(request.getNume());
-        user.setUtilizator(request.getUsername().trim().toLowerCase());
-        user.setParola(request.getPassword());
-        user.setRol("ROLE_USER");
-
-        userService.saveUser(user);
-
+    public ResponseEntity<?> registerUser(
+            @Valid @RequestBody RegisterRequest request
+    ) {
+        userService.registerUser(request);
         return ResponseEntity.ok("User registered successfully");
     }
 }
