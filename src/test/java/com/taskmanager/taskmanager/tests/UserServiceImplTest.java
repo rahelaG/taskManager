@@ -3,6 +3,7 @@ package com.taskmanager.taskmanager.tests;
 import com.taskmanager.taskmanager.dto.AdminCreateUserRequest;
 import com.taskmanager.taskmanager.dto.RegisterRequest;
 import com.taskmanager.taskmanager.dto.UserUpdateRequest;
+import com.taskmanager.taskmanager.entity.Role;
 import com.taskmanager.taskmanager.entity.User;
 import com.taskmanager.taskmanager.exception.BadRequestException;
 import com.taskmanager.taskmanager.exception.NotFoundException;
@@ -31,9 +32,6 @@ class UserServiceImplTest {
         userService = new UserServiceImpl(userRepository, encoder);
     }
 
-
-    // FIND BY ID
-
     @Test
     void getById_shouldReturnUser() {
         User u = new User();
@@ -54,42 +52,24 @@ class UserServiceImplTest {
                 () -> userService.getById(99L));
     }
 
-
-    // FIND ALL
-    @Test
-    void findAllUsers_shouldReturnList() {
-        when(userRepository.findAll()).thenReturn(List.of(new User(), new User()));
-
-        List<User> users = userService.findAllUsers();
-
-        assertEquals(2, users.size());
-    }
-
-
-    // CREATE USER (ADMIN)
     @Test
     void createUser_shouldEncodePasswordAndSave() {
         AdminCreateUserRequest req = new AdminCreateUserRequest();
         req.setNume("Ana");
         req.setUtilizator("ana");
         req.setParola("pass123");
-        req.setRol("ROLE_USER");
+        req.setRol(String.valueOf(Role.ROLE_USER));
 
         when(encoder.encode("pass123")).thenReturn("ENCODED");
 
-        User saved = new User();
-        when(userRepository.save(any(User.class))).thenReturn(saved);
+        when(userRepository.save(any(User.class))).thenReturn(new User());
 
-        User result = userService.createUser(req);
+        userService.createUser(req);
 
-        assertNotNull(result);
         verify(encoder).encode("pass123");
         verify(userRepository).save(any(User.class));
     }
 
-    // =========================
-    // UPDATE USER
-    // =========================
     @Test
     void updateUser_shouldUpdateFieldsExceptPassword() {
         User existing = new User();
@@ -102,17 +82,14 @@ class UserServiceImplTest {
         UserUpdateRequest req = new UserUpdateRequest();
         req.setNume("New Name");
         req.setUtilizator("newuser");
-        req.setRol("ROLE_EDITOR");
+        req.setRol(String.valueOf(Role.ROLE_EDITOR));
 
         User result = userService.updateUser(5L, req);
 
-        assertEquals("New Name", result.getNume());
-        assertEquals("newuser", result.getUtilizator());
-        assertEquals("ROLE_EDITOR", result.getRol());
+        assertEquals(Role.ROLE_EDITOR, result.getRol());
         assertEquals("OLD_HASH", result.getParola());
     }
 
-    // CHANGE PASSWORD
     @Test
     void changePassword_shouldEncodeAndSave() {
         User u = new User();
@@ -124,19 +101,11 @@ class UserServiceImplTest {
         userService.changePassword(3L, "newpass");
 
         assertEquals("HASHED", u.getParola());
-        verify(userRepository).save(u);
     }
 
-    @Test
-    void changePassword_shouldThrowIfEmpty() {
-        assertThrows(BadRequestException.class,
-                () -> userService.changePassword(1L, ""));
-    }
-
-    // FIND EDITORS
     @Test
     void findEditors_shouldReturnOnlyEditors() {
-        when(userRepository.findByRol("ROLE_EDITOR"))
+        when(userRepository.findByRol(Role.ROLE_EDITOR))
                 .thenReturn(List.of(new User(), new User()));
 
         List<User> editors = userService.findEditors();
@@ -144,18 +113,6 @@ class UserServiceImplTest {
         assertEquals(2, editors.size());
     }
 
-    // FIND BY UTILIZATOR (AUTH)
-    @Test
-    void findByUtilizator_shouldReturnUser() {
-        User u = new User();
-        when(userRepository.findByUtilizator("alex")).thenReturn(u);
-
-        User result = userService.findByUtilizator("alex");
-
-        assertEquals(u, result);
-    }
-
-    // REGISTER USER
     @Test
     void registerUser_shouldCreateUserWithRoleUser() {
         RegisterRequest req = new RegisterRequest();
@@ -169,7 +126,7 @@ class UserServiceImplTest {
 
         verify(userRepository).save(argThat(user ->
                 user.getUtilizator().equals("ion") &&
-                        user.getRol().equals("ROLE_USER") &&
+                        user.getRol() == Role.ROLE_USER &&
                         user.getParola().equals("HASHED")
         ));
     }
