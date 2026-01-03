@@ -7,26 +7,24 @@ import java.util.List;
 
 public interface ProjectService {
 
-    // ADMIN: creeaza proiect si asigneaza editor
-    ProjectResponse createProject(ProjectRequest request);
-
-    // ADMIN: vede toate proiectele
+    // =========================
+    // LEGACY / INTERNAL
+    // =========================
     List<ProjectResponse> findAllProjects();
-
-    // EDITOR: vede doar proiectele lui
     List<ProjectResponse> findProjectsForEditor(Long editorId);
 
-    // EDITOR / ADMIN: vede un proiect daca are acces
     ProjectResponse getProjectById(Long projectId, Long editorId, String role);
 
     List<Long> findProjectIdsForEditor(Long editorId);
 
-    // 🔹 R4: ADMIN – update status proiect
     ProjectResponse updateProjectStatus(Long projectId, String status);
-
-    // 🔹 R4: ADMIN – update proiect (nume, descriere, editor)
     ProjectResponse updateProject(Long projectId, ProjectRequest request);
-    // 🔹 R5: ADMIN – delete proiect
     void deleteProject(Long projectId);
 
+    // =========================
+    // PUBLIC API (CONTROLLER)
+    // =========================
+    ProjectResponse createProject(ProjectRequest request, String username);
+    List<ProjectResponse> getProjectsForUser(String username);
+    ProjectResponse getProjectForUser(Long projectId, String username);
 }

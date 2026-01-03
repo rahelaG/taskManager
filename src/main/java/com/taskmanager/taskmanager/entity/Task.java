@@ -2,6 +2,7 @@ package com.taskmanager.taskmanager.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.time.LocalDate;
 
 @Entity
@@ -17,19 +18,10 @@ public class Task {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "titlu")
     private String titlu;
-
-    @Column(name = "descriere")
     private String descriere;
-
-    @Column(name = "status")
     private String status;
-
-    @Column(name = "prioritate")
     private String prioritate;
-
-    @Column(name = "categorie")
     private String categorie;
 
     @Column(name = "data_creare")
@@ -38,10 +30,15 @@ public class Task {
     @Column(name = "data_limita")
     private LocalDate dataLimita;
 
-    @Column(name = "id_creator")
-    private Long idCreator;
+    // =========================
+    // RELAȚII
+    // =========================
 
-    @Column(name = "project_id", nullable = false)
-    private Long projectId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_creator", nullable = false)
+    private User creator;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "project_id", nullable = false)
+    private Project project;
 }

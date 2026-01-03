@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Entity
 @Table(name = "utilizatori")
 @Getter
@@ -26,6 +28,16 @@ public class User {
     @Column(nullable = false)
     private String parola;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String rol; // ROLE_USER / ROLE_EDITOR / ROLE_ADMIN
+    private Role rol;
+
+    // =========================
+    // RELAȚII (CLARITATE MODEL)
+    // =========================
+
+    // Editor → proiecte
+    @OneToMany(mappedBy = "editor", fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<Project> projects;
 }

@@ -3,6 +3,7 @@ package com.taskmanager.taskmanager.controller.api;
 import com.taskmanager.taskmanager.dto.ProjectRequest;
 import com.taskmanager.taskmanager.dto.ProjectResponse;
 import com.taskmanager.taskmanager.dto.ProjectStatusRequest;
+import com.taskmanager.taskmanager.entity.Role;
 import com.taskmanager.taskmanager.entity.User;
 import com.taskmanager.taskmanager.exception.ForbiddenException;
 import com.taskmanager.taskmanager.service.ProjectService;
@@ -35,39 +36,25 @@ public class ProjectRestController {
             @Valid @RequestBody ProjectRequest request,
             Authentication authentication
     ) {
-        String role = authentication.getAuthorities()
-                .iterator()
-                .next()
-                .getAuthority();
+        User user = userService.findByUtilizator(authentication.getName());
 
-        if (!"ROLE_ADMIN".equals(role)) {
+        if (user.getRol() != Role.ROLE_ADMIN) {
             throw new ForbiddenException("Only admins can create projects");
         }
 
-        return ResponseEntity.ok(projectService.createProject(request));
+        return ResponseEntity.ok(
+                projectService.createProject(request, user.getUtilizator())
+        );
     }
 
     // =========================
-    // ADMIN – ALL PROJECTS
-    // EDITOR – OWN PROJECTS
+    // ADMIN / EDITOR – PROJECTS
     // =========================
     @GetMapping
-    public ResponseEntity<List<ProjectResponse>> getProjects(
-            Authentication authentication
-    ) {
-        User user = userService.findByUtilizator(authentication.getName());
-
-        if ("ROLE_ADMIN".equals(user.getRol())) {
-            return ResponseEntity.ok(projectService.findAllProjects());
-        }
-
-        if ("ROLE_EDITOR".equals(user.getRol())) {
-            return ResponseEntity.ok(
-                    projectService.findProjectsForEditor(user.getId())
-            );
-        }
-
-        throw new ForbiddenException("Only admins and editors can view projects");
+    public ResponseEntity<List<ProjectResponse>> getProjects(Authentication authentication) {
+        return ResponseEntity.ok(
+                projectService.getProjectsForUser(authentication.getName())
+        );
     }
 
     // =========================
@@ -78,19 +65,9 @@ public class ProjectRestController {
             @PathVariable Long id,
             Authentication authentication
     ) {
-        User user = userService.findByUtilizator(authentication.getName());
-
-        ProjectResponse project = projectService.getProjectById(
-                id,
-                user.getId(),
-                user.getRol()
+        return ResponseEntity.ok(
+                projectService.getProjectForUser(id, authentication.getName())
         );
-
-        if (project == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(project);
     }
 
     // =========================
@@ -102,18 +79,13 @@ public class ProjectRestController {
             @Valid @RequestBody ProjectRequest request,
             Authentication authentication
     ) {
-        String role = authentication.getAuthorities()
-                .iterator()
-                .next()
-                .getAuthority();
+        User user = userService.findByUtilizator(authentication.getName());
 
-        if (!"ROLE_ADMIN".equals(role)) {
+        if (user.getRol() != Role.ROLE_ADMIN) {
             throw new ForbiddenException("Only admins can update projects");
         }
 
-        return ResponseEntity.ok(
-                projectService.updateProject(id, request)
-        );
+        return ResponseEntity.ok(projectService.updateProject(id, request));
     }
 
     // =========================
@@ -125,12 +97,9 @@ public class ProjectRestController {
             @RequestBody ProjectStatusRequest request,
             Authentication authentication
     ) {
-        String role = authentication.getAuthorities()
-                .iterator()
-                .next()
-                .getAuthority();
+        User user = userService.findByUtilizator(authentication.getName());
 
-        if (!"ROLE_ADMIN".equals(role)) {
+        if (user.getRol() != Role.ROLE_ADMIN) {
             throw new ForbiddenException("Only admins can update project status");
         }
 
@@ -147,12 +116,9 @@ public class ProjectRestController {
             @PathVariable Long id,
             Authentication authentication
     ) {
-        String role = authentication.getAuthorities()
-                .iterator()
-                .next()
-                .getAuthority();
+        User user = userService.findByUtilizator(authentication.getName());
 
-        if (!"ROLE_ADMIN".equals(role)) {
+        if (user.getRol() != Role.ROLE_ADMIN) {
             throw new ForbiddenException("Only admins can delete projects");
         }
 

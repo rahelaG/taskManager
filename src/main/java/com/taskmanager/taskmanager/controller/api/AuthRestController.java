@@ -27,19 +27,13 @@ public class AuthRestController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        String username = authentication.getName(); // acesta e "utilizator" din baza ta
-        User user = userService.findByUtilizator(username);
-
-
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+        User user = userService.findByUtilizator(authentication.getName());
 
         AuthResponse response = new AuthResponse();
         response.setId(user.getId());
-        response.setUsername(user.getUtilizator()); // câmpul utilizator
+        response.setUsername(user.getUtilizator());
         response.setNume(user.getNume());
-        response.setRol(user.getRol());
+        response.setRol(user.getRol().name());
 
         return ResponseEntity.ok(response);
     }

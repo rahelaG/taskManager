@@ -1,6 +1,7 @@
 package com.taskmanager.taskmanager.service.impl;
 
 import com.taskmanager.taskmanager.dto.*;
+import com.taskmanager.taskmanager.entity.Role;
 import com.taskmanager.taskmanager.entity.User;
 import com.taskmanager.taskmanager.exception.BadRequestException;
 import com.taskmanager.taskmanager.exception.NotFoundException;
@@ -17,11 +18,17 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserRepository userRepository,
-                           BCryptPasswordEncoder passwordEncoder) {
+    public UserServiceImpl(
+            UserRepository userRepository,
+            BCryptPasswordEncoder passwordEncoder
+    ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
+
+    // =========================
+    // CRUD ADMIN
+    // =========================
 
     @Override
     public User getById(Long id) {
@@ -40,7 +47,8 @@ public class UserServiceImpl implements UserService {
         user.setNume(req.getNume());
         user.setUtilizator(req.getUtilizator());
         user.setParola(passwordEncoder.encode(req.getParola()));
-        user.setRol(req.getRol());
+        user.setRol(Role.valueOf(req.getRol()));
+
         return userRepository.save(user);
     }
 
@@ -50,15 +58,43 @@ public class UserServiceImpl implements UserService {
 
         existing.setNume(req.getNume());
         existing.setUtilizator(req.getUtilizator());
-        existing.setRol(req.getRol());
+        existing.setRol(Role.valueOf(req.getRol()));
 
         return userRepository.save(existing);
     }
 
     @Override
     public void deleteUser(Long id) {
-        getById(id);
+        getById(id); // validare existență
         userRepository.deleteById(id);
+    }
+
+    // =========================
+    // SECURITY / AUTH
+    // =========================
+
+    @Override
+    public User findByUtilizator(String utilizator) {
+        User user = userRepository.findByUtilizator(utilizator);
+        if (user == null) {
+            throw new NotFoundException("User not found");
+        }
+        return user;
+    }
+
+    @Override
+    public void registerUser(RegisterRequest req) {
+        if (req.getPassword() == null || req.getPassword().length() < 6) {
+            throw new BadRequestException("Password must be at least 6 characters");
+        }
+
+        User user = new User();
+        user.setNume(req.getNume());
+        user.setUtilizator(req.getUsername());
+        user.setParola(passwordEncoder.encode(req.getPassword()));
+        user.setRol(Role.ROLE_USER);
+
+        userRepository.save(user);
     }
 
     @Override
@@ -75,9 +111,13 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
+    // =========================
+    // ADMIN VIEW
+    // =========================
+
     @Override
     public List<User> findEditors() {
-        return userRepository.findByRol("ROLE_EDITOR");
+        return userRepository.findByRol(Role.ROLE_EDITOR);
     }
 
     @Override
@@ -86,20 +126,21 @@ public class UserServiceImpl implements UserService {
 
         AdminDashboardResponse res = new AdminDashboardResponse();
         res.setTotalUsers(users.size());
-        res.setUsersRoleUser((int) users.stream().filter(u -> "ROLE_USER".equals(u.getRol())).count());
-        res.setUsersRoleEditor((int) users.stream().filter(u -> "ROLE_EDITOR".equals(u.getRol())).count());
-        res.setUsersRoleAdmin((int) users.stream().filter(u -> "ROLE_ADMIN".equals(u.getRol())).count());
+        res.setUsersRoleUser((int) users.stream().filter(u -> u.getRol() == Role.ROLE_USER).count());
+        res.setUsersRoleEditor((int) users.stream().filter(u -> u.getRol() == Role.ROLE_EDITOR).count());
+        res.setUsersRoleAdmin((int) users.stream().filter(u -> u.getRol() == Role.ROLE_ADMIN).count());
 
         res.setLatestUsers(
                 users.stream()
                         .sorted((a, b) -> b.getId().compareTo(a.getId()))
                         .limit(5)
                         .map(u -> {
-                            AdminDashboardResponse.LatestUser dto = new AdminDashboardResponse.LatestUser();
+                            AdminDashboardResponse.LatestUser dto =
+                                    new AdminDashboardResponse.LatestUser();
                             dto.setId(u.getId());
                             dto.setNume(u.getNume());
                             dto.setUtilizator(u.getUtilizator());
-                            dto.setRol(u.getRol());
+                            dto.setRol(u.getRol().name());
                             return dto;
                         })
                         .toList()
@@ -107,20 +148,4 @@ public class UserServiceImpl implements UserService {
 
         return res;
     }
-    @Override
-    public User findByUtilizator(String utilizator) {
-        return userRepository.findByUtilizator(utilizator);
-    }
-    @Override
-    public void registerUser(RegisterRequest req) {
-        User user = new User();
-        user.setNume(req.getNume());
-        user.setUtilizator(req.getUsername());
-        user.setParola(passwordEncoder.encode(req.getPassword()));
-        user.setRol("ROLE_USER");
-
-        userRepository.save(user);
-    }
-
-
 }

@@ -1,5 +1,6 @@
 package com.taskmanager.taskmanager.repository;
 
+import com.taskmanager.taskmanager.entity.Role;
 import com.taskmanager.taskmanager.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -9,6 +10,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     User findByUtilizator(String utilizator);
 
-    List<User> findByRol(String rol);
-
+    List<User> findByRol(Role rol);
 }

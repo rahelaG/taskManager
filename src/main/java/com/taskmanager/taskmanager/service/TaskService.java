@@ -8,7 +8,9 @@ import java.util.List;
 
 public interface TaskService {
 
-    // LEGACY (FOLOSITE INTERN)
+    // =========================
+    // LEGACY / INTERNAL
+    // =========================
     List<Task> getUserTasks(String status, String prioritate, String categorie, String username);
     List<Task> getEditorTasks(String status, String prioritate, String categorie, Long projectId, String username);
 
@@ -21,11 +23,23 @@ public interface TaskService {
     int countByStatus(String status);
     int countByPriority(String prioritate);
 
-
+    // =========================
     // PUBLIC API (CONTROLLER)
+    // =========================
+    List<TaskResponse> getUserTaskResponses(
+            String status,
+            String prioritate,
+            String categorie,
+            String username
+    );
 
-    List<TaskResponse> getUserTaskResponses(String status, String prioritate, String categorie, String username);
-    List<TaskResponse> getEditorTaskResponses(String status, String prioritate, String categorie, Long projectId, String username);
+    List<TaskResponse> getEditorTaskResponses(
+            String status,
+            String prioritate,
+            String categorie,
+            Long projectId,
+            String username
+    );
 
     TaskResponse createTask(TaskRequest dto, String username);
     TaskResponse getTaskByIdForEditor(Long id, String username);

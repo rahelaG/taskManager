@@ -3,6 +3,7 @@ package com.taskmanager.taskmanager.service.impl;
 import com.taskmanager.taskmanager.dto.ProjectResponse;
 import com.taskmanager.taskmanager.dto.TaskRequest;
 import com.taskmanager.taskmanager.dto.TaskResponse;
+import com.taskmanager.taskmanager.entity.Project;
 import com.taskmanager.taskmanager.entity.ProjectStatus;
 import com.taskmanager.taskmanager.entity.Task;
 import com.taskmanager.taskmanager.entity.User;
@@ -35,11 +36,17 @@ public class TaskServiceImpl implements TaskService {
         this.projectService = projectService;
     }
 
-
+    // =========================================================
     // USER
+    // =========================================================
 
     @Override
-    public List<Task> getUserTasks(String status, String prioritate, String categorie, String username) {
+    public List<Task> getUserTasks(
+            String status,
+            String prioritate,
+            String categorie,
+            String username
+    ) {
         User user = userService.findByUtilizator(username);
 
         return taskRepository.filterTasksForUser(
@@ -51,23 +58,34 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public List<TaskResponse> getUserTaskResponses(String status, String prioritate, String categorie, String username) {
+    public List<TaskResponse> getUserTaskResponses(
+            String status,
+            String prioritate,
+            String categorie,
+            String username
+    ) {
         return getUserTasks(status, prioritate, categorie, username)
                 .stream()
                 .map(this::mapWithProjectName)
                 .toList();
     }
 
+    // =========================================================
     // EDITOR
+    // =========================================================
+
     @Override
-    public List<Task> getEditorTasks(String status, String prioritate, String categorie, Long projectId, String username) {
+    public List<Task> getEditorTasks(
+            String status,
+            String prioritate,
+            String categorie,
+            Long projectId,
+            String username
+    ) {
         User editor = userService.findByUtilizator(username);
 
-        if ("ROLE_ADMIN".equals(editor.getRol())) {
-            throw new ForbiddenException("Admins are not allowed to access tasks");
-        }
-
-        List<Long> projectIds = projectService.findProjectIdsForEditor(editor.getId());
+        List<Long> projectIds =
+                projectService.findProjectIdsForEditor(editor.getId());
 
         if (projectId != null) {
             if (!projectIds.contains(projectId)) {
@@ -85,22 +103,39 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public List<TaskResponse> getEditorTaskResponses(String status, String prioritate, String categorie, Long projectId, String username) {
+    public List<TaskResponse> getEditorTaskResponses(
+            String status,
+            String prioritate,
+            String categorie,
+            Long projectId,
+            String username
+    ) {
         return getEditorTasks(status, prioritate, categorie, projectId, username)
                 .stream()
                 .map(this::mapWithProjectName)
                 .toList();
     }
 
-    // NOILE METODE
+    // =========================================================
+    // PUBLIC API
+    // =========================================================
+
     @Override
     public TaskResponse createTask(TaskRequest dto, String username) {
         User editor = userService.findByUtilizator(username);
 
-        ProjectResponse project =
-                projectService.getProjectById(dto.getProjectId(), editor.getId(), editor.getRol());
+        ProjectResponse projectResponse =
+                projectService.getProjectById(
+                        dto.getProjectId(),
+                        editor.getId(),
+                        editor.getRol().name()
+                );
 
-        if (ProjectStatus.ARCHIVED.name().equals(project.getStatus())) {
+        if (projectResponse == null) {
+            throw new ForbiddenException("No access to this project");
+        }
+
+        if (ProjectStatus.ARCHIVED.name().equals(projectResponse.getStatus())) {
             throw new ForbiddenException("Project is archived");
         }
 
@@ -110,9 +145,10 @@ public class TaskServiceImpl implements TaskService {
         task.setStatus(dto.getStatus());
         task.setPrioritate(dto.getPrioritate());
         task.setCategorie(dto.getCategorie());
-        task.setProjectId(dto.getProjectId());
-        task.setIdCreator(editor.getId());
         task.setDataCreare(LocalDate.now());
+
+        task.setCreator(editor);
+        task.setProject(Project.builder().id(dto.getProjectId()).build());
 
         return mapWithProjectName(taskRepository.save(task));
     }
@@ -149,7 +185,7 @@ public class TaskServiceImpl implements TaskService {
                 .orElseThrow(() -> new NotFoundException("Task not found"));
 
         validateEditorAccess(task, username);
-        taskRepository.deleteById(id);
+        taskRepository.delete(task);
     }
 
     @Override
@@ -159,16 +195,25 @@ public class TaskServiceImpl implements TaskService {
 
         validateEditorAccess(task, username);
 
-        task.setIdCreator(userId);
+        User assignee = userService.getById(userId);
+        task.setCreator(assignee);
+
         return mapWithProjectName(taskRepository.save(task));
     }
 
+    // =========================================================
     // HELPERS
+    // =========================================================
+
     private void validateEditorAccess(Task task, String username) {
         User editor = userService.findByUtilizator(username);
 
         ProjectResponse project =
-                projectService.getProjectById(task.getProjectId(), editor.getId(), editor.getRol());
+                projectService.getProjectById(
+                        task.getProject().getId(),
+                        editor.getId(),
+                        editor.getRol().name()
+                );
 
         if (project == null) {
             throw new ForbiddenException("No access to this task");
@@ -181,21 +226,31 @@ public class TaskServiceImpl implements TaskService {
 
     private TaskResponse mapWithProjectName(Task task) {
         TaskResponse dto = TaskMapper.toResponse(task);
-        ProjectResponse project = projectService.getProjectById(task.getProjectId(), null, "ROLE_ADMIN");
-        if (project != null) dto.setProjectName(project.getNume());
+
+        ProjectResponse project =
+                projectService.getProjectById(
+                        task.getProject().getId(),
+                        null,
+                        "ROLE_ADMIN"
+                );
+
+        if (project != null) {
+            dto.setProjectName(project.getNume());
+        }
+
         return dto;
     }
 
-    private String normalize(String v) {
-        return (v == null || v.isBlank()) ? null : v;
+    private String normalize(String value) {
+        return (value == null || value.isBlank()) ? null : value;
     }
 
-// LEGACY / SHARED METHODS
+    // =========================================================
+    // LEGACY / SHARED
+    // =========================================================
+
     @Override
     public Task save(Task task) {
-        if (task.getProjectId() == null) {
-            throw new IllegalArgumentException("Task must belong to a project");
-        }
         return taskRepository.save(task);
     }
 
@@ -219,8 +274,6 @@ public class TaskServiceImpl implements TaskService {
         return taskRepository.findAll();
     }
 
-
-// DASHBOARD / STATS
     @Override
     public int countByStatus(String status) {
         return taskRepository.countByStatus(status);
@@ -230,5 +283,4 @@ public class TaskServiceImpl implements TaskService {
     public int countByPriority(String prioritate) {
         return taskRepository.countByPrioritate(prioritate);
     }
-
 }

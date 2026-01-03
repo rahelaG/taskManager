@@ -6,9 +6,8 @@ import com.taskmanager.taskmanager.entity.Task;
 public class TaskMapper {
 
     public static TaskResponse toResponse(Task task) {
-
-
         TaskResponse dto = new TaskResponse();
+
         dto.setId(task.getId());
         dto.setTitlu(task.getTitlu());
         dto.setDescriere(task.getDescriere());
@@ -17,8 +16,16 @@ public class TaskMapper {
         dto.setCategorie(task.getCategorie());
         dto.setDataCreare(task.getDataCreare());
         dto.setDataLimita(task.getDataLimita());
-        dto.setProjectId(task.getProjectId());
-        dto.setIdCreator(task.getIdCreator());
+
+        // RELAȚII -> ID-uri
+        dto.setProjectId(
+                task.getProject() != null ? task.getProject().getId() : null
+        );
+
+        dto.setIdCreator(
+                task.getCreator() != null ? task.getCreator().getId() : null
+        );
+
         return dto;
     }
 }
