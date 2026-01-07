@@ -1,56 +1,139 @@
-# 🗂️ Task Manager – Spring Boot Web Application
+# Task & Project Management Application
 
-A complete Task / Project Management web application built with **Spring Boot**, using a clean layered architecture and secure role-based access control.
+A full-stack task and project management application built with **Spring Boot** and **React**, designed around a clean layered architecture, explicit domain modeling, and strict role-based access control.
 
-## 🚀 Features
-
-### 🔐 Authentication & Roles
-- Secure login with **Spring Security**
-- Passwords encrypted using **BCrypt**
-- Three roles:
-    - **ROLE_USER** – can view and filter tasks
-    - **ROLE_EDITOR** – can create, update, delete tasks
-    - **ROLE_ADMIN** – can manage users and roles
-
-### 📋 Task Management
-- Create, edit, delete tasks (EDITOR & ADMIN)
-- View and filter tasks (USER, EDITOR, ADMIN)
-- Dynamic filtering by:
-    - `status` (TODO, IN_PROGRESS, DONE)
-    - `prioritate` (LOW, MEDIUM, HIGH)
-    - `categorie` (Backend, Bug, Feature, etc.)
-- Timestamps: creation date, optional deadline
-
-### 🏗️ Architecture (recommended by the project specification)
-- **Entity layer** – JPA entities (`User`, `Task`)
-- **Repository layer** – Spring Data JPA
-- **Service layer** – business logic
-- **Controller layer** – HTTP endpoints (Spring MVC)
-- **Security layer** – Spring Security configuration
-- **Database** – MySQL (initialized via `data.sql`)
-
-### 💻 Frontend
-- Thymeleaf templates
-- HTML/CSS
-- Optional: Bootstrap for modern UI
-- Optional: React version (future extension)
+The project focuses on correctness, maintainability, and real-world backend design practices.
 
 ---
 
-## 🛠️ Technologies Used
+## Core Functionality
 
-- **Java 17**
-- **Spring Boot**
-- Spring MVC
-- Spring Data JPA
+### Authentication & Authorization
+- Secure authentication using **Spring Security**
+- Password hashing with **BCrypt**
+- Session-based login
+- Role-based access enforced at service level
+- Supported roles:
+    - **USER** – works on assigned tasks
+    - **EDITOR** – manages projects and tasks
+    - **ADMIN** – manages users and projects
+
+---
+
+### User Management (ADMIN)
+- Create, update and delete users
+- Assign roles (USER / EDITOR / ADMIN)
+- Reset user passwords
+- View all users
+- View editor list (used for project assignment)
+- Admin dashboard statistics:
+    - total users
+    - users grouped by role
+    - latest registered users
+
+---
+
+### Project Management
+- Create projects and assign an editor (ADMIN)
+- Update project details and assigned editor (ADMIN)
+- Change project status:PLANNED, ACTIVE, ON_HOLD, COMPLETED, ARCHIVED
+- Delete projects (ADMIN)
+- View all projects (ADMIN)
+- View assigned projects (EDITOR)
+- Access control enforced per project
+
+---
+
+### Task Management
+- Tasks always belong to a project
+- Create, update and delete tasks (EDITOR)
+- Assign tasks to users (EDITOR)
+- View tasks:
+    - USER: only own tasks
+    - EDITOR: tasks from assigned projects
+- Filtering support:
+    - status
+    - priority
+    - category
+- Project state rules enforced:
+    - tasks cannot be created, updated or assigned if the project is archived
+
+---
+
+## Architecture
+
+### Backend (Spring Boot)
+- Layered architecture:
+    - Controller
+    - Service
+    - Repository
+- Business logic isolated in the service layer
+- Thin controllers
+- DTO + Mapper pattern to isolate domain entities
+- Custom exceptions for validation and access control
+- JPA entity relationships:
+    - User ↔ Project
+    - Project ↔ Task
+- Enums used for domain consistency:
+    - `Role`
+    - `ProjectStatus`
+- Unit-tested service layer (JUnit + Mockito)
+
+---
+
+### Frontend (React)
+- React with functional components
+- Chakra UI for consistent and accessible UI
+- Role-aware routing
+- Centralized authentication context
+- API communication via Axios
+- Separation between pages, containers, hooks and services
+
+---
+
+## Technology Stack
+
+### Backend
+- Java 17
+- Spring Boot
 - Spring Security
+- Spring Data JPA
+- Hibernate
 - MySQL
 - Maven
-- Thymeleaf
-- Lombok (optional)
-- Git & GitHub
+
+### Frontend
+- React
+- Chakra UI
+- Vite
+- Axios
+
+### Testing
+- JUnit 5
+- Mockito
 
 ---
 
-## 📁 Project Structure
+## How to Run
+
+- Clone the repository locally
+- Run the Spring Boot backend (default port: 8080)
+- Install dependencies and start the React frontend (Vite)
+- Access the application via `http://localhost:5173`
+
+
+
+## Design Goals
+
+- Clear separation of concerns
+- Explicit domain rules
+- Predictable access control
+- Testable business logic
+- Codebase ready for extension (JWT, permissions, audit logging)
+
+---
+
+## Status
+
+The project is functionally complete and structured to support future scalability and production-grade improvements.
 
