@@ -30,9 +30,8 @@ public class Task {
     @Column(name = "data_limita")
     private LocalDate dataLimita;
 
-    // =========================
-    // RELAȚII
-    // =========================
+
+// RELAȚII  
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_creator", nullable = false)
@@ -41,4 +40,8 @@ public class Task {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assigned_user_id")
+    private User assignedUser;
 }

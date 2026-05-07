@@ -44,4 +44,8 @@ public class Project {
     @OneToMany(mappedBy = "project", fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Task> tasks;
+
+    @ManyToOne
+    @JoinColumn(name = "team_id")
+    private Team team;
 }
