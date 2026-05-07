@@ -1,5 +1,6 @@
 package com.taskmanager.taskmanager.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -30,9 +31,7 @@ public class Task {
     @Column(name = "data_limita")
     private LocalDate dataLimita;
 
-
-// RELAȚII  
-
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_creator", nullable = false)
     private User creator;

@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -33,19 +34,16 @@ public class Project {
     @Column(name = "data_creare", nullable = false)
     private LocalDate dataCreare;
 
-    // =========================
-    // RELAȚII
-    // =========================
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_editor", nullable = false)
     private User editor;
 
-    @OneToMany(mappedBy = "project", fetch = FetchType.LAZY)
     @JsonIgnore
-    private List<Task> tasks;
+    @OneToMany(mappedBy = "project", fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<Task> tasks = new ArrayList<>();
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_id")
     private Team team;
 }
