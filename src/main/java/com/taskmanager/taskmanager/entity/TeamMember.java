@@ -1,6 +1,7 @@
 package com.taskmanager.taskmanager.entity;
 
 import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
 @Table(
@@ -9,6 +10,10 @@ import jakarta.persistence.*;
                 @UniqueConstraint(columnNames = {"team_id", "user_id"})
         }
 )
+@Getter
+@Setter
+@AllArgsConstructor
+@Builder
 public class TeamMember {
 
     @Id
